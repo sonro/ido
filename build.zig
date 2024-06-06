@@ -34,6 +34,7 @@ pub fn build(b: *std.Build) void {
     ) orelse &[0][]const u8{};
 
     const lib_unit_tests = b.addTest(.{
+        .name = "unit-lib",
         .root_source_file = b.path("src/ido.zig"),
         .target = target,
         .optimize = optimize,
@@ -42,6 +43,7 @@ pub fn build(b: *std.Build) void {
     const run_lib_unit_tests = b.addRunArtifact(lib_unit_tests);
 
     const exe_unit_tests = b.addTest(.{
+        .name = "unit-exe",
         .root_source_file = b.path("src/main.zig"),
         .target = target,
         .optimize = optimize,
@@ -50,6 +52,7 @@ pub fn build(b: *std.Build) void {
     const run_exe_unit_tests = b.addRunArtifact(exe_unit_tests);
 
     const integration_tests = b.addTest(.{
+        .name = "integration",
         .root_source_file = b.path("tests/tests.zig"),
         .target = target,
         .optimize = optimize,
