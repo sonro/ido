@@ -2,10 +2,13 @@ const std = @import("std");
 const testing = std.testing;
 const allocator = testing.allocator;
 const ido = @import("ido");
+const util = @import("util.zig");
+const checkTaskNotDone = util.checkTaskNotDone;
+const checkTaskDone = util.checkTaskDone;
 
 test "create new simple task" {
     const task = try ido.Task.newSimple("a");
-    try checkTask(task, "a", null);
+    try checkTaskNotDone(task, "a", null);
 }
 
 test "create new simple task with empty name" {
@@ -15,7 +18,7 @@ test "create new simple task with empty name" {
 
 test "create new task with description" {
     const task = try ido.Task.new("a", "b");
-    try checkTask(task, "a", "b");
+    try checkTaskNotDone(task, "a", "b");
 }
 
 test "create new task with empty name" {
@@ -25,7 +28,7 @@ test "create new task with empty name" {
 
 test "create new task with empty description" {
     const task = try ido.Task.new("a", "");
-    try checkTask(task, "a", null);
+    try checkTaskNotDone(task, "a", null);
 }
 
 test "create new task with empty name and description" {
@@ -33,11 +36,36 @@ test "create new task with empty name and description" {
     try testing.expectError(ido.TaskError.NoTaskName, res);
 }
 
-fn checkTask(task: ido.Task, name: []const u8, description: ?[]const u8) !void {
-    try testing.expectEqualStrings(name, task.name);
-    if (description) |desc| {
-        try testing.expectEqualStrings(desc, task.description.?);
-    } else {
-        try testing.expectEqual(null, task.description);
-    }
+test "mark task as done" {
+    var task = try ido.Task.new("a", "b");
+    task.done = true;
+    try checkTaskDone(task, "a", "b");
+}
+
+test "format simple task" {
+    const task = try ido.Task.newSimple("a");
+    try checkTaskFmt("TODO: a\n", task);
+}
+
+test "format simple done task" {
+    var task = try ido.Task.newSimple("a");
+    task.done = true;
+    try checkTaskFmt("DONE: a\n", task);
+}
+
+test "format task with description" {
+    const task = try ido.Task.new("a", "b");
+    try checkTaskFmt("TODO: a\nb\n", task);
+}
+
+test "format task with description and done" {
+    var task = try ido.Task.new("a", "b");
+    task.done = true;
+    try checkTaskFmt("DONE: a\nb\n", task);
+}
+
+fn checkTaskFmt(comptime expected: []const u8, task: ido.Task) !void {
+    var buf = [_]u8{0} ** expected.len;
+    const formatted = try std.fmt.bufPrint(&buf, "{}", .{task});
+    try testing.expectEqualStrings(expected, formatted);
 }
