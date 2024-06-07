@@ -56,10 +56,10 @@ fn checkDone(comptime name: []const u8, comptime desc: []const u8) !void {
 }
 
 fn checkSerializeTask(comptime expected: []const u8, task: ido.Task) !void {
-    var buf: [expected.len]u8 = undefined;
-    var fbs = std.io.fixedBufferStream(&buf);
-    try ido.serializeTask(task, fbs.writer());
-    try testing.expectEqualStrings(expected, &buf);
+    var string = try std.ArrayList(u8).initCapacity(allocator, expected.len);
+    defer string.deinit();
+    try ido.serializeTask(task, string.writer());
+    try testing.expectEqualStrings(expected, string.items);
 }
 
 fn expectedTodoSimple(comptime name: []const u8) []const u8 {
