@@ -1,4 +1,5 @@
 const std = @import("std");
+const ido = @import("ido.zig");
 
 pub const TaskError = error{
     NoTaskName,
@@ -19,13 +20,13 @@ pub const Task = struct {
 
     pub fn format(self: Task, _: []const u8, _: std.fmt.FormatOptions, writer: anytype) !void {
         if (self.done) {
-            try writer.writeAll("DONE: ");
+            try writer.writeAll(ido.DONE_PATTERN);
         } else {
-            try writer.writeAll("TODO: ");
+            try writer.writeAll(ido.TODO_PATTERN);
         }
-        try writer.print("{s}\n", .{self.name});
+        try writer.print(" {s}", .{self.name});
         if (self.description) |desc| {
-            try writer.print("{s}\n", .{desc});
+            try writer.print("\n{s}", .{desc});
         }
     }
 

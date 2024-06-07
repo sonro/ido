@@ -44,24 +44,24 @@ test "mark task as done" {
 
 test "format simple task" {
     const task = try ido.Task.newSimple("a");
-    try checkTaskFmt("TODO: a\n", task);
+    try checkTaskFmt("TODO: a", task);
 }
 
 test "format simple done task" {
     var task = try ido.Task.newSimple("a");
     task.done = true;
-    try checkTaskFmt("DONE: a\n", task);
+    try checkTaskFmt("DONE: a", task);
 }
 
 test "format task with description" {
     const task = try ido.Task.new("a", "b");
-    try checkTaskFmt("TODO: a\nb\n", task);
+    try checkTaskFmt("TODO: a\nb", task);
 }
 
 test "format task with description and done" {
     var task = try ido.Task.new("a", "b");
     task.done = true;
-    try checkTaskFmt("DONE: a\nb\n", task);
+    try checkTaskFmt("DONE: a\nb", task);
 }
 
 fn checkTaskFmt(comptime expected: []const u8, task: ido.Task) !void {
