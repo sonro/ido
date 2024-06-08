@@ -5,11 +5,10 @@ const TODO_PATTERN = ido.TODO_PATTERN;
 const DONE_PATTERN = ido.DONE_PATTERN;
 
 pub fn serializeTask(task: Task, writer: anytype) !void {
-    if (task.done) {
-        try writer.print("DONE: {s}\n", .{task.name});
-    } else {
-        try writer.print("TODO: {s}\n", .{task.name});
-    }
+    try writer.print("{s} {s}\n", .{
+        if (task.done) DONE_PATTERN else TODO_PATTERN,
+        task.name,
+    });
 
     if (task.description) |desc| {
         try writer.print("{s}\n", .{desc});
