@@ -1,4 +1,5 @@
 comptime {
+    _ = @import("manager.zig");
     _ = @import("parse.zig");
     _ = @import("serialize.zig");
     _ = @import("store.zig");
