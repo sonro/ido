@@ -157,8 +157,5 @@ test "task with description no TODO" {
 fn checkTaskList(comptime expected: []const ido.Task, comptime input: []const u8) !void {
     const tasklist = try ido.parseTaskList(allocator, input);
     defer tasklist.deinit();
-    try testing.expectEqual(expected.len, tasklist.items.len);
-    for (expected, tasklist.items) |exp, act| {
-        try util.expectTaskEqual(exp, act);
-    }
+    try util.expectTaskSliceEqual(expected, tasklist.items);
 }
