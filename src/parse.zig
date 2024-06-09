@@ -8,6 +8,26 @@ pub const ParseError = error{
     NoTaskName,
 };
 
+/// Input format must use `ido.TODO_PATTERN` and `ido.DONE_PATTERN`
+pub fn parseTaskList(
+    allocator: std.mem.Allocator,
+    input: []const u8,
+) !std.ArrayList(Task) {
+    var tasklist = std.ArrayList(Task).init(allocator);
+    errdefer tasklist.deinit();
+    var start: usize = 0;
+    while (findNextTask(input[start..])) |index| {
+        const task = try parseTask(input[index..]);
+        try tasklist.append(task);
+        start += index + task.name.len;
+        if (task.description) |desc| {
+            start += desc.len;
+        }
+    }
+
+    return tasklist;
+}
+
 pub fn parseTask(input: []const u8) ParseError!Task {
     var task = Task{ .name = undefined, .description = null, .done = undefined };
     const start = findTaskStart(input);
@@ -19,6 +39,11 @@ pub fn parseTask(input: []const u8) ParseError!Task {
     try task.validate();
 
     return task;
+}
+
+fn findNextTask(input: []const u8) ?usize {
+    return std.mem.indexOf(u8, input, TODO_PATTERN) orelse
+        std.mem.indexOf(u8, input, DONE_PATTERN);
 }
 
 fn findTaskStart(input: []const u8) usize {
@@ -56,9 +81,9 @@ fn parseTaskData(task: *Task, input: []const u8) void {
 }
 
 fn trimTaskData(task: *Task) void {
-    task.name = std.mem.trim(u8, task.name, " \t");
+    task.name = std.mem.trim(u8, task.name, " \t\r\n");
     if (task.description) |d| {
-        task.description = std.mem.trim(u8, d, " \t");
+        task.description = std.mem.trim(u8, d, " \t\r\n");
         if (task.description.?.len == 0) {
             task.description = null;
         }

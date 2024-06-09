@@ -8,6 +8,7 @@ pub const Task = task.Task;
 pub const TaskError = task.TaskError;
 
 pub const parseTask = parse.parseTask;
+pub const parseTaskList = parse.parseTaskList;
 pub const ParseError = parse.ParseError;
 
 pub const TODO_PATTERN = "TODO:";

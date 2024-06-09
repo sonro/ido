@@ -7,6 +7,43 @@ const checkTaskNotDone = util.checkTaskNotDone;
 const checkTaskDone = util.checkTaskDone;
 const ParseError = ido.ParseError;
 
+test "tasklist from empty string" {
+    try checkTaskList(&.{}, "");
+}
+
+test "tasklist from single task" {
+    try checkTaskList(&.{
+        .{ .name = "foo", .description = null, .done = false },
+    }, "TODO: foo");
+}
+
+test "tasklist from multiple tasks" {
+    try checkTaskList(&.{
+        .{ .name = "foo", .description = null, .done = false },
+        .{ .name = "bar", .description = null, .done = true },
+    }, "TODO: foo\nDONE: bar");
+}
+
+test "tasklist from multiple tasks using blank lines" {
+    try checkTaskList(&.{
+        .{ .name = "foo", .description = null, .done = false },
+        .{ .name = "bar", .description = null, .done = true },
+    }, "\n\nTODO: foo\n\nDONE: bar\n\n");
+}
+
+test "tasklist from single task with description" {
+    try checkTaskList(&.{
+        .{ .name = "foo", .description = "bar", .done = false },
+    }, "TODO: foo\nbar");
+}
+
+test "tasklist from multiple tasks with description" {
+    try checkTaskList(&.{
+        .{ .name = "foo", .description = "bar", .done = false },
+        .{ .name = "bar", .description = "baz", .done = true },
+    }, "TODO: foo\nbar\nDONE: bar\nbaz");
+}
+
 test "simple task" {
     const task = try ido.parseTask("TODO: foo");
     try checkTaskNotDone(task, "foo", null);
@@ -115,4 +152,13 @@ test "simple task no TODO" {
 test "task with description no TODO" {
     const task = try ido.parseTask("foo\nbar");
     try checkTaskNotDone(task, "foo", "bar");
+}
+
+fn checkTaskList(comptime expected: []const ido.Task, comptime input: []const u8) !void {
+    const tasklist = try ido.parseTaskList(allocator, input);
+    defer tasklist.deinit();
+    try testing.expectEqual(expected.len, tasklist.items.len);
+    for (expected, tasklist.items) |exp, act| {
+        try util.expectTaskEqual(exp, act);
+    }
 }
