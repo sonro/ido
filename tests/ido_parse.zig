@@ -144,14 +144,9 @@ test "newline before simple done task" {
     try checkTaskDone(task, "foo", null);
 }
 
-test "simple task no TODO" {
-    const task = try format.parseTask("foo");
-    try checkTaskNotDone(task, "foo", null);
-}
-
-test "task with description no TODO" {
-    const task = try format.parseTask("foo\nbar");
-    try checkTaskNotDone(task, "foo", "bar");
+test "no task error" {
+    const res = format.parseTask("foo");
+    try testing.expectError(error.NoTask, res);
 }
 
 fn checkTaskList(comptime expected: []const ido.Task, comptime input: []const u8) !void {

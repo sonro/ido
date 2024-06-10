@@ -38,7 +38,7 @@ pub fn parseTaskList(
 
 pub fn parseTask(input: []const u8) !Task {
     var task = Task{ .name = undefined, .description = null, .done = undefined };
-    const start = findTaskStart(input);
+    const start = findTaskStart(input) orelse return error.NoTask;
     const end = findTaskEnd(input, start);
 
     setTaskDone(&task, input[0..start]);
@@ -54,14 +54,13 @@ fn findNextTask(input: []const u8) ?usize {
         std.mem.indexOf(u8, input, DONE_PATTERN);
 }
 
-fn findTaskStart(input: []const u8) usize {
-    var start: usize = 0;
+fn findTaskStart(input: []const u8) ?usize {
     if (std.mem.indexOf(u8, input, TODO_PATTERN)) |index| {
-        start = index + TODO_PATTERN.len;
+        return index + TODO_PATTERN.len;
     } else if (std.mem.indexOf(u8, input, DONE_PATTERN)) |index| {
-        start = index + DONE_PATTERN.len;
+        return index + DONE_PATTERN.len;
     }
-    return start;
+    return null;
 }
 
 fn setTaskDone(task: *Task, input: []const u8) void {
