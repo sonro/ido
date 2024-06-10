@@ -1,7 +1,7 @@
 const std = @import("std");
 const ido = @import("ido.zig");
 
-pub const TaskError = error{
+pub const Error = error{
     NoTaskName,
 };
 
@@ -10,11 +10,11 @@ pub const Task = struct {
     description: ?[]const u8,
     done: bool,
 
-    pub fn new(name: []const u8, description: []const u8) TaskError!Task {
+    pub fn new(name: []const u8, description: []const u8) Error!Task {
         return rawNew(name, description, false);
     }
 
-    pub fn newSimple(name: []const u8) TaskError!Task {
+    pub fn newSimple(name: []const u8) Error!Task {
         return rawNew(name, null, false);
     }
 
@@ -30,24 +30,24 @@ pub const Task = struct {
         }
     }
 
-    pub fn validate(self: *Task) TaskError!void {
-        try validateName(self.name);
-        if (self.description) |desc| {
-            if (desc.len == 0) self.description = null;
-        }
-    }
-
-    fn rawNew(name: []const u8, description: ?[]const u8, done: bool) TaskError!Task {
+    fn rawNew(name: []const u8, description: ?[]const u8, done: bool) Error!Task {
         var task = Task{
             .name = name,
             .description = description,
             .done = done,
         };
-        try task.validate();
+        try validate(&task);
         return task;
     }
 };
 
-fn validateName(name: []const u8) TaskError!void {
-    if (name.len == 0) return TaskError.NoTaskName;
+pub fn validate(task: *Task) Error!void {
+    try validateName(task.name);
+    if (task.description) |desc| {
+        if (desc.len == 0) task.description = null;
+    }
+}
+
+fn validateName(name: []const u8) Error!void {
+    if (name.len == 0) return Error.NoTaskName;
 }

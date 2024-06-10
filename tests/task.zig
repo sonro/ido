@@ -13,7 +13,7 @@ test "create new simple task" {
 
 test "create new simple task with empty name" {
     const res = ido.Task.newSimple("");
-    try testing.expectError(ido.TaskError.NoTaskName, res);
+    try testing.expectError(ido.task.Error.NoTaskName, res);
 }
 
 test "create new task with description" {
@@ -23,7 +23,7 @@ test "create new task with description" {
 
 test "create new task with empty name" {
     const res = ido.Task.new("", "b");
-    try testing.expectError(ido.TaskError.NoTaskName, res);
+    try testing.expectError(ido.task.Error.NoTaskName, res);
 }
 
 test "create new task with empty description" {
@@ -33,7 +33,7 @@ test "create new task with empty description" {
 
 test "create new task with empty name and description" {
     const res = ido.Task.new("", "");
-    try testing.expectError(ido.TaskError.NoTaskName, res);
+    try testing.expectError(ido.task.Error.NoTaskName, res);
 }
 
 test "mark task as done" {

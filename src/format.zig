@@ -4,9 +4,17 @@ const Task = ido.Task;
 const TODO_PATTERN = ido.TODO_PATTERN;
 const DONE_PATTERN = ido.DONE_PATTERN;
 
-pub const ParseError = error{
-    NoTaskName,
-};
+pub fn serializeTask(task: Task, writer: anytype) !void {
+    try writer.print("{s} {s}\n", .{
+        if (task.done) DONE_PATTERN else TODO_PATTERN,
+        task.name,
+    });
+
+    if (task.description) |desc| {
+        try writer.print("{s}\n", .{desc});
+    }
+    try writer.writeByte('\n');
+}
 
 /// Input format must use `ido.TODO_PATTERN` and `ido.DONE_PATTERN`
 pub fn parseTaskList(
@@ -28,7 +36,7 @@ pub fn parseTaskList(
     return tasklist;
 }
 
-pub fn parseTask(input: []const u8) ParseError!Task {
+pub fn parseTask(input: []const u8) !Task {
     var task = Task{ .name = undefined, .description = null, .done = undefined };
     const start = findTaskStart(input);
     const end = findTaskEnd(input, start);
@@ -36,7 +44,7 @@ pub fn parseTask(input: []const u8) ParseError!Task {
     setTaskDone(&task, input[0..start]);
     parseTaskData(&task, input[start..end]);
     trimTaskData(&task);
-    try task.validate();
+    try ido.task.validate(&task);
 
     return task;
 }
