@@ -5,6 +5,13 @@ const TODO_PATTERN = ido.TODO_PATTERN;
 const DONE_PATTERN = ido.DONE_PATTERN;
 
 /// Produces format using `ido.TODO_PATTERN` and `ido.DONE_PATTERN`
+pub fn serializeTaskList(tasks: []const Task, writer: anytype) !void {
+    for (tasks) |task| {
+        try serializeTask(task, writer);
+    }
+}
+
+/// Produces format using `ido.TODO_PATTERN` and `ido.DONE_PATTERN`
 pub fn serializeTask(task: Task, writer: anytype) !void {
     try writer.print("{s} {s}\n", .{
         if (task.done) DONE_PATTERN else TODO_PATTERN,
