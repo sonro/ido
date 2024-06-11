@@ -1,7 +1,7 @@
 const manager = @import("manager.zig");
+const store = @import("store.zig");
 
 pub const format = @import("format.zig");
-pub const store = @import("store.zig");
 pub const task = @import("task.zig");
 
 pub const Manager = manager.Manager;

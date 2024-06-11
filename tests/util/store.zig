@@ -11,28 +11,18 @@ pub const TestStore = struct {
         return .{ .tasks = tasks };
     }
 
-    pub fn deinit(_: *TestStore) void {}
-
     pub fn taskStore(self: *TestStore) ido.TaskStore {
-        return ido.TaskStore{
-            .ptr = self,
-            .vtable = &.{
-                .save = save,
-                .load = load,
-            },
-        };
+        return ido.TaskStore.init(self);
     }
 
-    fn save(ctx: *anyopaque, tasks: []const ido.Task) !void {
-        var self: *TestStore = @ptrCast(@alignCast(ctx));
+    pub fn save(self: *TestStore, tasks: []const ido.Task) !void {
         self.tasks = tasks;
     }
 
-    fn load(
-        ctx: *anyopaque,
+    pub fn load(
+        self: *TestStore,
         allocator: std.mem.Allocator,
     ) !std.ArrayList(ido.Task) {
-        const self: *TestStore = @ptrCast(@alignCast(ctx));
         var tasklist = std.ArrayList(ido.Task).init(allocator);
         try tasklist.appendSlice(self.tasks);
         return tasklist;
@@ -41,9 +31,8 @@ pub const TestStore = struct {
 
 test "TestStore empty store save empty" {
     var test_store = TestStore.init(&.{});
-    var store = test_store.taskStore();
 
-    try store.save(&.{});
+    try test_store.save(&.{});
 
     try util.expectTaskSliceEqual(&.{}, test_store.tasks);
 }
@@ -51,9 +40,8 @@ test "TestStore empty store save empty" {
 test "TestStore empty store save single task" {
     const task = .{ .name = "foo", .description = null, .done = false };
     var test_store = TestStore.init(&.{});
-    var store = test_store.taskStore();
 
-    try store.save(&.{task});
+    try test_store.save(&.{task});
 
     try util.expectTaskSliceEqual(&.{task}, test_store.tasks);
 }
@@ -144,12 +132,11 @@ test "TestStore load then save" {
     const task1 = .{ .name = "foo", .description = null, .done = false };
     const task2 = .{ .name = "bar", .description = null, .done = true };
     var test_store = TestStore.init(&.{task1});
-    var store = test_store.taskStore();
 
-    var tasklist = try store.load(testing.allocator);
+    var tasklist = try test_store.load(testing.allocator);
     defer tasklist.deinit();
     try tasklist.append(task2);
-    try store.save(tasklist.items);
+    try test_store.save(tasklist.items);
 
     try util.expectTaskSliceEqual(&.{ task1, task2 }, test_store.tasks);
 }
