@@ -12,11 +12,11 @@ pub const TaskStore = struct {
         load: *const fn (*anyopaque, std.mem.Allocator) anyerror!std.ArrayList(ido.Task),
     };
 
-    pub fn save(self: *TaskStore, tasks: []const ido.Task) !void {
+    pub fn save(self: TaskStore, tasks: []const ido.Task) !void {
         return self.vtable.save(self.ptr, tasks);
     }
 
-    pub fn load(self: *TaskStore, allocator: std.mem.Allocator) !std.ArrayList(ido.Task) {
+    pub fn load(self: TaskStore, allocator: std.mem.Allocator) !std.ArrayList(ido.Task) {
         return self.vtable.load(self.ptr, allocator);
     }
 
