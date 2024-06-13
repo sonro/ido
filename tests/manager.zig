@@ -5,28 +5,12 @@ const ido = @import("ido");
 const util = @import("util.zig");
 const Task = ido.Task;
 const Manager = ido.Manager;
-
-const FOUR_TODOS = &.{
-    .{ .name = "foo", .description = null, .done = false },
-    .{ .name = "bar", .description = null, .done = false },
-    .{ .name = "baz", .description = null, .done = false },
-    .{ .name = "qux", .description = null, .done = false },
-};
-const FOUR_DONES = &.{
-    .{ .name = "foo", .description = null, .done = true },
-    .{ .name = "bar", .description = null, .done = true },
-    .{ .name = "baz", .description = null, .done = true },
-    .{ .name = "qux", .description = null, .done = true },
-};
-const FOUR_MIXED = &.{
-    .{ .name = "foo", .description = null, .done = false },
-    .{ .name = "bar", .description = null, .done = true },
-    .{ .name = "baz", .description = null, .done = false },
-    .{ .name = "qux", .description = null, .done = true },
-};
-const ONE_TODO = &.{FOUR_TODOS[0]};
-const ONE_DONE = &.{FOUR_DONES[0]};
-const EMPTY_TASKS: []const Task = &.{};
+const FOUR_TODOS = util.FOUR_TODOS;
+const FOUR_DONES = util.FOUR_DONES;
+const FOUR_MIXED = util.FOUR_MIXED;
+const ONE_TODO = util.ONE_TODO;
+const ONE_DONE = util.ONE_DONE;
+const EMPTY_TASKS = util.EMPTY_TASKS;
 
 test "all tasks empty store" {
     var tester = ManagerTester(testAllTasks){

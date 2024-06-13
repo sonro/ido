@@ -1,5 +1,7 @@
 const std = @import("std");
 const ido = @import("ido.zig");
+const Task = ido.Task;
+const fs = std.fs;
 
 /// Interface for saving and loading tasks
 pub const TaskStore = struct {
@@ -8,15 +10,15 @@ pub const TaskStore = struct {
     vtable: *const VTable,
 
     pub const VTable = struct {
-        save: *const fn (*anyopaque, []const ido.Task) anyerror!void,
-        load: *const fn (*anyopaque, std.mem.Allocator) anyerror!std.ArrayList(ido.Task),
+        save: *const fn (*anyopaque, []const Task) anyerror!void,
+        load: *const fn (*anyopaque, std.mem.Allocator) anyerror!std.ArrayList(Task),
     };
 
-    pub fn save(self: TaskStore, tasks: []const ido.Task) !void {
+    pub fn save(self: TaskStore, tasks: []const Task) !void {
         return self.vtable.save(self.ptr, tasks);
     }
 
-    pub fn load(self: TaskStore, allocator: std.mem.Allocator) !std.ArrayList(ido.Task) {
+    pub fn load(self: TaskStore, allocator: std.mem.Allocator) !std.ArrayList(Task) {
         return self.vtable.load(self.ptr, allocator);
     }
 
@@ -35,14 +37,14 @@ pub const TaskStore = struct {
         if (ptr_info.Pointer.size != .One) @compileError("ptr must be a single item pointer");
 
         const gen = comptime struct {
-            pub fn save(ctx: *anyopaque, tasks: []const ido.Task) anyerror!void {
+            pub fn save(ctx: *anyopaque, tasks: []const Task) anyerror!void {
                 const self: T = @ptrCast(@alignCast(ctx));
                 return ptr_info.Pointer.child.save(self, tasks);
             }
             pub fn load(
                 ctx: *anyopaque,
                 allocator: std.mem.Allocator,
-            ) anyerror!std.ArrayList(ido.Task) {
+            ) anyerror!std.ArrayList(Task) {
                 const self: T = @ptrCast(@alignCast(ctx));
                 return ptr_info.Pointer.child.load(self, allocator);
             }
