@@ -2,6 +2,7 @@ const std = @import("std");
 const testing = std.testing;
 const ido = @import("ido");
 pub const TestStore = @import("util/store.zig").TestStore;
+pub const TestFile = @import("util/file.zig").TestFile;
 
 pub fn expectTaskSliceEqual(
     expected: []const ido.Task,

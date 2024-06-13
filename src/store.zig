@@ -57,3 +57,26 @@ pub const TaskStore = struct {
         };
     }
 };
+
+pub const FileStore = struct {
+    allocator: std.mem.Allocator,
+    path: []const u8,
+    contents: []const u8,
+
+    pub fn init(allocator: std.mem.Allocator, path: []const u8) !FileStore {
+        const contents = try std.fs.cwd().readFileAlloc(
+            allocator,
+            path,
+            std.math.maxInt(usize),
+        );
+        return .{
+            .allocator = allocator,
+            .path = path,
+            .contents = contents,
+        };
+    }
+
+    pub fn deinit(self: FileStore) void {
+        self.allocator.free(self.contents);
+    }
+};
