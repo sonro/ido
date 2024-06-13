@@ -62,6 +62,12 @@ pub const TaskStore = struct {
 };
 
 pub fn FileStore(Format: type) type {
+    if (!@hasDecl(Format, "serializeTaskList")) {
+        @compileError("Format requires a serializeTaskList function");
+    }
+    if (!@hasDecl(Format, "parseTaskList")) {
+        @compileError("Format requires a parseTaskList function");
+    }
     return struct {
         allocator: std.mem.Allocator,
         path: []const u8,
