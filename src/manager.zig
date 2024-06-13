@@ -69,4 +69,20 @@ pub const Manager = struct {
         }
         if (self.persist_all_changes) try self.store.save(self.tasks.items);
     }
+
+    pub fn deleteAllDone(self: *Manager) !void {
+        var deleted: usize = 0;
+        // reverse iterate to preserve order
+        var i = self.tasks.items.len;
+        while (i > 0) {
+            i -= 1;
+            if (self.tasks.items[i].done) {
+                _ = self.tasks.orderedRemove(i);
+                deleted += 1;
+            }
+        }
+        if (self.persist_all_changes and deleted > 0) {
+            try self.store.save(self.tasks.items);
+        }
+    }
 };

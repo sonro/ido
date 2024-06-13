@@ -18,6 +18,12 @@ const FOUR_DONES = &.{
     .{ .name = "baz", .description = null, .done = true },
     .{ .name = "qux", .description = null, .done = true },
 };
+const FOUR_MIXED = &.{
+    .{ .name = "foo", .description = null, .done = false },
+    .{ .name = "bar", .description = null, .done = true },
+    .{ .name = "baz", .description = null, .done = false },
+    .{ .name = "qux", .description = null, .done = true },
+};
 const ONE_TODO = &.{FOUR_TODOS[0]};
 const ONE_DONE = &.{FOUR_DONES[0]};
 const EMPTY_TASKS: []const Task = &.{};
@@ -292,6 +298,58 @@ fn testSetFirst(manager: *Manager, expected: []const Task, index: usize) !void {
     try manager.setFirst(index);
     const actual = manager.allTasks();
     try util.expectTaskSliceEqual(expected, actual);
+}
+
+test "delete all done empty store" {
+    var tester = ManagerTester(testDeleteAllDone){
+        .tasks = EMPTY_TASKS,
+        .expected_saves = 0,
+    };
+    try tester.call(.{});
+}
+
+test "delete all done with only dones" {
+    var tester = ManagerTester(testDeleteAllDone){
+        .tasks = FOUR_DONES,
+        .expected_saves = 1,
+    };
+    try tester.call(.{});
+}
+
+test "delete all done with only todos" {
+    var tester = ManagerTester(testDeleteAllDone){
+        .tasks = FOUR_TODOS,
+        .expected_saves = 0,
+    };
+    try tester.call(.{});
+}
+
+test "delete all done with todos and dones" {
+    var tester = ManagerTester(testDeleteAllDone){
+        .tasks = FOUR_MIXED,
+        .expected_saves = 1,
+    };
+    try tester.call(.{});
+}
+
+fn testDeleteAllDone(manager: *Manager) !void {
+    const original_tasks = manager.allTasks();
+    const done_count = countDone(original_tasks);
+    const expected_tasks_len = original_tasks.len - done_count;
+
+    try manager.deleteAllDone();
+    const actual_tasks = manager.allTasks();
+
+    try testing.expectEqual(expected_tasks_len, actual_tasks.len);
+    try testing.expectEqual(0, countDone(actual_tasks));
+}
+
+fn countDone(tasks: []const Task) usize {
+    var count: usize = 0;
+    for (tasks) |task| {
+        if (task.done) count += 1;
+    }
+    return count;
 }
 
 fn testIndexError(manager: *Manager, method: anytype, index: usize) !void {
