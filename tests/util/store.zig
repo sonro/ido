@@ -6,6 +6,7 @@ const util = @import("../util.zig");
 pub const TestStore = struct {
     allocator: std.mem.Allocator = testing.allocator,
     tasks: []const ido.Task = &.{},
+    saved: u32 = 0,
 
     pub fn init(tasks: []const ido.Task) TestStore {
         return .{ .tasks = tasks };
@@ -17,6 +18,7 @@ pub const TestStore = struct {
 
     pub fn save(self: *TestStore, tasks: []const ido.Task) !void {
         self.tasks = tasks;
+        self.saved += 1;
     }
 
     pub fn load(
