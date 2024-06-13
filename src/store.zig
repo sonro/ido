@@ -60,25 +60,33 @@ pub const TaskStore = struct {
     }
 };
 
-pub const FileStore = struct {
-    allocator: std.mem.Allocator,
-    path: []const u8,
-    contents: []const u8,
+pub fn FileStore(Format: type) type {
+    return struct {
+        allocator: std.mem.Allocator,
+        path: []const u8,
+        contents: []const u8,
 
-    pub fn init(allocator: std.mem.Allocator, path: []const u8) !FileStore {
-        const contents = try std.fs.cwd().readFileAlloc(
-            allocator,
-            path,
-            std.math.maxInt(usize),
-        );
-        return .{
-            .allocator = allocator,
-            .path = path,
-            .contents = contents,
-        };
-    }
+        const Self = @This();
 
-    pub fn deinit(self: FileStore) void {
-        self.allocator.free(self.contents);
-    }
-};
+        pub fn init(allocator: std.mem.Allocator, path: []const u8) Self {
+            return .{
+                .allocator = allocator,
+                .path = path,
+                .contents = "",
+            };
+        }
+
+        pub fn deinit(self: Self) void {
+            self.allocator.free(self.contents);
+        }
+
+        pub fn load(self: *Self, allocator: std.mem.Allocator) !std.ArrayList(Task) {
+            self.contents = try std.fs.cwd().readFileAlloc(
+                allocator,
+                self.path,
+                std.math.maxInt(usize),
+            );
+            return try Format.parseTaskList(allocator, self.contents);
+        }
+    };
+}
