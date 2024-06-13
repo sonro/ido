@@ -2,6 +2,7 @@ const std = @import("std");
 const ido = @import("ido.zig");
 const Task = ido.Task;
 const fs = std.fs;
+const io = std.io;
 
 /// Interface for saving and loading tasks
 pub const TaskStore = struct {
@@ -80,8 +81,20 @@ pub fn FileStore(Format: type) type {
             self.allocator.free(self.contents);
         }
 
+        pub fn taskStore(self: *Self) TaskStore {
+            return TaskStore.init(self);
+        }
+
+        pub fn save(self: *Self, tasks: []const Task) !void {
+            var file = try fs.cwd().createFile(self.path, .{});
+            defer file.close();
+            var bw = io.bufferedWriter(file.writer());
+            try Format.serializeTaskList(tasks, bw.writer());
+            try bw.flush();
+        }
+
         pub fn load(self: *Self, allocator: std.mem.Allocator) !std.ArrayList(Task) {
-            self.contents = try std.fs.cwd().readFileAlloc(
+            self.contents = try fs.cwd().readFileAlloc(
                 allocator,
                 self.path,
                 std.math.maxInt(usize),
