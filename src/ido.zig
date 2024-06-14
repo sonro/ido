@@ -1,9 +1,9 @@
 const manager = @import("manager.zig");
 const store = @import("store.zig");
 
-pub const format = @import("format.zig");
 pub const task = @import("task.zig");
 
+pub const Format = @import("Format.zig");
 pub const Manager = manager.Manager;
 pub const Task = task.Task;
 pub const TaskStore = store.TaskStore;

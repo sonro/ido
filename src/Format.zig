@@ -1,17 +1,24 @@
+//! Ido format module
+//!
+//! A simple text-based format for tasks:
+//! ```txt
+//! TODO: task name
+//!
+//! DONE: another task name
+//! optional description
+//! ```
 const std = @import("std");
 const ido = @import("ido.zig");
 const Task = ido.Task;
 const TODO_PATTERN = ido.TODO_PATTERN;
 const DONE_PATTERN = ido.DONE_PATTERN;
 
-/// Produces format using `ido.TODO_PATTERN` and `ido.DONE_PATTERN`
 pub fn serializeTaskList(tasks: []const Task, writer: anytype) !void {
     for (tasks) |task| {
         try serializeTask(task, writer);
     }
 }
 
-/// Produces format using `ido.TODO_PATTERN` and `ido.DONE_PATTERN`
 pub fn serializeTask(task: Task, writer: anytype) !void {
     try writer.print("{s} {s}\n", .{
         if (task.done) DONE_PATTERN else TODO_PATTERN,
@@ -24,7 +31,6 @@ pub fn serializeTask(task: Task, writer: anytype) !void {
     try writer.writeByte('\n');
 }
 
-/// Input format must use `ido.TODO_PATTERN` and `ido.DONE_PATTERN`
 pub fn parseTaskList(
     allocator: std.mem.Allocator,
     input: []const u8,
@@ -48,7 +54,6 @@ pub fn parseTaskList(
     return tasklist;
 }
 
-/// Input format must use `ido.TODO_PATTERN` and `ido.DONE_PATTERN`
 pub fn parseTask(input: []const u8) !Task {
     var task = Task{ .name = undefined, .description = null, .done = undefined };
     const start = findTaskStart(input) orelse return error.NoTask;

@@ -4,7 +4,7 @@ const ido = @import("ido");
 const Task = ido.Task;
 pub const TestStore = @import("store.zig").TestStore;
 pub const TestFile = @import("file.zig").TestFile;
-pub const TestFormat = @import("format.zig");
+pub const TestFormat = @import("Format.zig");
 
 pub const FOUR_TODOS = &.{
     .{ .name = "foo", .description = null, .done = false },

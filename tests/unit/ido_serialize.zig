@@ -2,7 +2,7 @@ const std = @import("std");
 const testing = std.testing;
 const allocator = testing.allocator;
 const ido = @import("ido");
-const format = ido.format;
+const Format = ido.Format;
 const util = @import("test-util");
 
 const TODO_PREFIX = "TODO: ";
@@ -71,7 +71,7 @@ fn checkTaskList(comptime tasks: []const ido.Task) !void {
     defer expected.deinit();
     var string = try std.ArrayList(u8).initCapacity(allocator, expected.items.len);
     defer string.deinit();
-    try format.serializeTaskList(tasks, string.writer());
+    try Format.serializeTaskList(tasks, string.writer());
     try testing.expectEqualStrings(expected.items, string.items);
 }
 
@@ -105,7 +105,7 @@ fn checkDone(comptime name: []const u8, comptime desc: []const u8) !void {
 fn checkSerializeTask(comptime expected: []const u8, task: ido.Task) !void {
     var string = try std.ArrayList(u8).initCapacity(allocator, expected.len);
     defer string.deinit();
-    try format.serializeTask(task, string.writer());
+    try Format.serializeTask(task, string.writer());
     try testing.expectEqualStrings(expected, string.items);
 }
 

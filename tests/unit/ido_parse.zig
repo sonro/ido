@@ -2,7 +2,7 @@ const std = @import("std");
 const testing = std.testing;
 const allocator = testing.allocator;
 const ido = @import("ido");
-const format = ido.format;
+const Format = ido.Format;
 const util = @import("test-util");
 const checkTaskNotDone = util.checkTaskNotDone;
 const checkTaskDone = util.checkTaskDone;
@@ -45,112 +45,112 @@ test "tasklist from multiple tasks with description" {
 }
 
 test "simple task" {
-    const task = try format.parseTask("TODO: foo");
+    const task = try Format.parseTask("TODO: foo");
     try checkTaskNotDone(task, "foo", null);
 }
 
 test "simple task no whitespace" {
-    const task = try format.parseTask("TODO:foo");
+    const task = try Format.parseTask("TODO:foo");
     try checkTaskNotDone(task, "foo", null);
 }
 
 test "simple done task" {
-    const task = try format.parseTask("DONE: foo");
+    const task = try Format.parseTask("DONE: foo");
     try checkTaskDone(task, "foo", null);
 }
 
 test "simple done task no whitespace" {
-    const task = try format.parseTask("DONE:foo");
+    const task = try Format.parseTask("DONE:foo");
     try checkTaskDone(task, "foo", null);
 }
 
 test "simple task with newline ending" {
-    const task = try format.parseTask("TODO: foo\n");
+    const task = try Format.parseTask("TODO: foo\n");
     try checkTaskNotDone(task, "foo", null);
 }
 
 test "simple task with blank line ending" {
-    const task = try format.parseTask("TODO: foo\n\n");
+    const task = try Format.parseTask("TODO: foo\n\n");
     try checkTaskNotDone(task, "foo", null);
 }
 
 test "simple task todo ending" {
-    const task = try format.parseTask("TODO: foo TODO: bar");
+    const task = try Format.parseTask("TODO: foo TODO: bar");
     try checkTaskNotDone(task, "foo", null);
 }
 
 test "simple task todo ending no whitespace" {
-    const task = try format.parseTask("TODO:fooTODO:bar");
+    const task = try Format.parseTask("TODO:fooTODO:bar");
     try checkTaskNotDone(task, "foo", null);
 }
 
 test "simple task done ending" {
-    const task = try format.parseTask("DONE: foo DONE: bar");
+    const task = try Format.parseTask("DONE: foo DONE: bar");
     try checkTaskDone(task, "foo", null);
 }
 
 test "simple task done ending no whitespace" {
-    const task = try format.parseTask("DONE:fooDONE:bar");
+    const task = try Format.parseTask("DONE:fooDONE:bar");
     try checkTaskDone(task, "foo", null);
 }
 
 test "task with description" {
-    const task = try format.parseTask("TODO: foo\nbar");
+    const task = try Format.parseTask("TODO: foo\nbar");
     try checkTaskNotDone(task, "foo", "bar");
 }
 
 test "task with description containing newline" {
-    const task = try format.parseTask("TODO: foo\nbar\nbaz");
+    const task = try Format.parseTask("TODO: foo\nbar\nbaz");
     try checkTaskNotDone(task, "foo", "bar\nbaz");
 }
 
 test "task with description containing blank line" {
-    const task = try format.parseTask("TODO: foo\nbar\n\nbaz");
+    const task = try Format.parseTask("TODO: foo\nbar\n\nbaz");
     try checkTaskNotDone(task, "foo", "bar");
 }
 
 test "task with whitespace only description" {
-    const task = try format.parseTask("TODO: foo\n   ");
+    const task = try Format.parseTask("TODO: foo\n   ");
     try checkTaskNotDone(task, "foo", null);
 }
 
 test "simple task no name error" {
-    const res = format.parseTask("TODO: ");
+    const res = Format.parseTask("TODO: ");
     try testing.expectError(error.NoTaskName, res);
 }
 
 test "task with description no name error" {
-    const res = format.parseTask("TODO: \nbar");
+    const res = Format.parseTask("TODO: \nbar");
     try testing.expectError(error.NoTaskName, res);
 }
 
 test "whitespace before simple task" {
-    const task = try format.parseTask("  TODO: foo");
+    const task = try Format.parseTask("  TODO: foo");
     try checkTaskNotDone(task, "foo", null);
 }
 
 test "newline before simple task" {
-    const task = try format.parseTask("\nTODO: foo");
+    const task = try Format.parseTask("\nTODO: foo");
     try checkTaskNotDone(task, "foo", null);
 }
 
 test "whitespace before simple done task" {
-    const task = try format.parseTask("  DONE: foo");
+    const task = try Format.parseTask("  DONE: foo");
     try checkTaskDone(task, "foo", null);
 }
 
 test "newline before simple done task" {
-    const task = try format.parseTask("\nDONE: foo");
+    const task = try Format.parseTask("\nDONE: foo");
     try checkTaskDone(task, "foo", null);
 }
 
 test "no task error" {
-    const res = format.parseTask("foo");
+    const res = Format.parseTask("foo");
     try testing.expectError(error.NoTask, res);
 }
 
 fn checkTaskList(comptime expected: []const ido.Task, comptime input: []const u8) !void {
-    const tasklist = try format.parseTaskList(allocator, input);
+    const tasklist = try Format.parseTaskList(allocator, input);
     defer tasklist.deinit();
     try util.expectTaskSliceEqual(expected, tasklist.items);
 }
