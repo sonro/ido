@@ -2,9 +2,9 @@ const std = @import("std");
 const testing = std.testing;
 const ido = @import("ido");
 const Task = ido.Task;
-pub const TestStore = @import("util/store.zig").TestStore;
-pub const TestFile = @import("util/file.zig").TestFile;
-pub const TestFormat = @import("util/format.zig");
+pub const TestStore = @import("store.zig").TestStore;
+pub const TestFile = @import("file.zig").TestFile;
+pub const TestFormat = @import("format.zig");
 
 pub const FOUR_TODOS = &.{
     .{ .name = "foo", .description = null, .done = false },

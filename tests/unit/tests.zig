@@ -4,5 +4,4 @@ comptime {
     _ = @import("ido_parse.zig");
     _ = @import("ido_serialize.zig");
     _ = @import("task.zig");
-    _ = @import("util.zig");
 }

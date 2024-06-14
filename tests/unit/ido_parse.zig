@@ -3,7 +3,7 @@ const testing = std.testing;
 const allocator = testing.allocator;
 const ido = @import("ido");
 const format = ido.format;
-const util = @import("util.zig");
+const util = @import("../util/util.zig");
 const checkTaskNotDone = util.checkTaskNotDone;
 const checkTaskDone = util.checkTaskDone;
 

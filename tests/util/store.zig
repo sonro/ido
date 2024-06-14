@@ -1,7 +1,7 @@
 const std = @import("std");
 const testing = std.testing;
 const ido = @import("ido");
-const util = @import("../util.zig");
+const util = @import("util.zig");
 
 pub const TestStore = struct {
     allocator: std.mem.Allocator = testing.allocator,

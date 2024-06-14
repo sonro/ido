@@ -33,17 +33,8 @@ pub fn build(b: *std.Build) void {
         "Skip tests that do not match any filter",
     ) orelse &[0][]const u8{};
 
-    const lib_unit_tests = b.addTest(.{
-        .name = "unit-lib",
-        .root_source_file = b.path("src/ido.zig"),
-        .target = target,
-        .optimize = optimize,
-        .filters = test_filters,
-    });
-    const run_lib_unit_tests = b.addRunArtifact(lib_unit_tests);
-
     const exe_unit_tests = b.addTest(.{
-        .name = "unit-exe",
+        .name = "exe-unit-tests",
         .root_source_file = b.path("src/main.zig"),
         .target = target,
         .optimize = optimize,
@@ -51,19 +42,18 @@ pub fn build(b: *std.Build) void {
     });
     const run_exe_unit_tests = b.addRunArtifact(exe_unit_tests);
 
-    const integration_tests = b.addTest(.{
-        .name = "integration",
+    const tests = b.addTest(.{
+        .name = "tests",
         .root_source_file = b.path("tests/tests.zig"),
         .target = target,
         .optimize = optimize,
         .filters = test_filters,
     });
-    b.installArtifact(integration_tests);
-    integration_tests.root_module.addImport("ido", libModule);
-    const run_integration_tests = b.addRunArtifact(integration_tests);
+    b.installArtifact(tests);
+    tests.root_module.addImport("ido", libModule);
+    const run_tests = b.addRunArtifact(tests);
 
-    const test_step = b.step("test", "Run unit tests");
-    test_step.dependOn(&run_lib_unit_tests.step);
+    const test_step = b.step("test", "Run tests");
+    test_step.dependOn(&run_tests.step);
     test_step.dependOn(&run_exe_unit_tests.step);
-    test_step.dependOn(&run_integration_tests.step);
 }
