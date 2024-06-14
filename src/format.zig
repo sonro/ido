@@ -33,11 +33,15 @@ pub fn parseTaskList(
     errdefer tasklist.deinit();
     var start: usize = 0;
     while (findNextTask(input[start..])) |index| {
-        const task = try parseTask(input[index..]);
+        start += index;
+        const task = try parseTask(input[start..]);
         try tasklist.append(task);
-        start += index + task.name.len;
+        start += task.name.len;
         if (task.description) |desc| {
             start += desc.len;
+        }
+        if (start >= input.len) {
+            break;
         }
     }
 
@@ -77,9 +81,10 @@ fn setTaskDone(task: *Task, input: []const u8) void {
 }
 
 fn findTaskEnd(input: []const u8, start: usize) usize {
-    const end = std.mem.indexOf(u8, input[start..], "\n\n") orelse
+    const end =
         std.mem.indexOf(u8, input[start..], TODO_PATTERN) orelse
-        std.mem.indexOf(u8, input[start..], DONE_PATTERN);
+        std.mem.indexOf(u8, input[start..], DONE_PATTERN) orelse
+        std.mem.indexOf(u8, input[start..], "\n\n");
 
     return if (end) |e| e + start else input.len;
 }
