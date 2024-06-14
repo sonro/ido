@@ -2,7 +2,7 @@ const std = @import("std");
 const testing = std.testing;
 const allocator = testing.allocator;
 const ido = @import("ido");
-const util = @import("../util/util.zig");
+const util = @import("test-util");
 const checkTaskNotDone = util.checkTaskNotDone;
 const checkTaskDone = util.checkTaskDone;
 
