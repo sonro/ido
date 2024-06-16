@@ -6,26 +6,26 @@ pub const TestStore = @import("store.zig").TestStore;
 pub const TestFile = @import("file.zig").TestFile;
 pub const TestFormat = @import("Format.zig");
 
-pub const FOUR_TODOS = &.{
+pub const FOUR_TODOS: []const Task = &.{
     .{ .name = "foo", .description = null, .done = false },
     .{ .name = "bar", .description = null, .done = false },
     .{ .name = "baz", .description = null, .done = false },
     .{ .name = "qux", .description = null, .done = false },
 };
-pub const FOUR_DONES = &.{
+pub const FOUR_DONES: []const Task = &.{
     .{ .name = "foo", .description = null, .done = true },
     .{ .name = "bar", .description = null, .done = true },
     .{ .name = "baz", .description = null, .done = true },
     .{ .name = "qux", .description = null, .done = true },
 };
-pub const FOUR_MIXED = &.{
+pub const FOUR_MIXED: []const Task = &.{
     .{ .name = "foo", .description = null, .done = false },
     .{ .name = "bar", .description = null, .done = true },
     .{ .name = "baz", .description = null, .done = false },
     .{ .name = "qux", .description = null, .done = true },
 };
-pub const ONE_TODO = &.{FOUR_TODOS[0]};
-pub const ONE_DONE = &.{FOUR_DONES[0]};
+pub const ONE_TODO: []const Task = &.{FOUR_TODOS[0]};
+pub const ONE_DONE: []const Task = &.{FOUR_DONES[0]};
 pub const EMPTY_TASKS: []const Task = &.{};
 
 pub fn expectTaskSliceEqual(

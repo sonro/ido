@@ -46,6 +46,12 @@ pub const Manager = struct {
         return self.tasks.items[index];
     }
 
+    pub fn addTask(self: *Manager, task: Task) !usize {
+        try self.tasks.append(task);
+        if (self.persist_all_changes) try self.store.save(self.tasks.items);
+        return self.tasks.items.len - 1;
+    }
+
     pub fn markDone(self: *Manager, index: usize) !Task {
         if (index >= self.tasks.items.len) return error.OutOfRange;
         self.tasks.items[index].done = true;

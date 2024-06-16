@@ -89,6 +89,39 @@ fn testReload(manager: *Manager, expected: []const Task) !void {
     try util.expectTaskSliceEqual(expected, manager.allTasks());
 }
 
+test "add task empty store" {
+    try checkAddTask(.{
+        .stored = EMPTY_TASKS,
+        .task = ONE_TODO[0],
+        .expected = EMPTY_TASKS ++ ONE_TODO,
+    });
+}
+
+test "add task non empty store" {
+    const task = Task{ .name = "testAddTask" };
+    try checkAddTask(.{
+        .stored = FOUR_TODOS,
+        .task = task,
+        .expected = FOUR_TODOS ++ &[_]Task{task},
+    });
+}
+
+fn checkAddTask(args: anytype) !void {
+    var tester = ManagerTester(testAddTask){
+        .tasks = args.stored,
+        .expected_saves = 1,
+    };
+    try tester.call(.{ args.task, args.expected });
+}
+
+fn testAddTask(manager: *Manager, task: Task, expected: []const Task) !void {
+    const index = try manager.addTask(task);
+    const actual = manager.getTask(index);
+    try testing.expect(actual != null);
+    try util.expectTaskEqual(task, actual.?);
+    try util.expectTaskSliceEqual(expected, manager.allTasks());
+}
+
 test "get one task with multiple task store" {
     var tester = ManagerTester(testGetOne){
         .tasks = FOUR_TODOS,
