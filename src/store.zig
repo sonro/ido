@@ -13,6 +13,7 @@ pub const TaskStore = struct {
     pub const VTable = struct {
         save: *const fn (*anyopaque, []const Task) anyerror!void,
         load: *const fn (*anyopaque, std.mem.Allocator) anyerror!std.ArrayList(Task),
+        loadInto: *const fn (*anyopaque, *std.ArrayList(Task)) anyerror!void,
     };
 
     pub fn save(self: TaskStore, tasks: []const Task) !void {
@@ -21,6 +22,10 @@ pub const TaskStore = struct {
 
     pub fn load(self: TaskStore, allocator: std.mem.Allocator) !std.ArrayList(Task) {
         return self.vtable.load(self.ptr, allocator);
+    }
+
+    pub fn loadInto(self: TaskStore, tasklist: *std.ArrayList(Task)) !void {
+        return self.vtable.loadInto(self.ptr, tasklist);
     }
 
     /// Call from the implmentation to load the interface
@@ -49,6 +54,13 @@ pub const TaskStore = struct {
                 const self: T = @ptrCast(@alignCast(ctx));
                 return ptr_info.Pointer.child.load(self, allocator);
             }
+            pub fn loadInto(
+                ctx: *anyopaque,
+                tasklist: *std.ArrayList(Task),
+            ) anyerror!void {
+                const self: T = @ptrCast(@alignCast(ctx));
+                return ptr_info.Pointer.child.loadInto(self, tasklist);
+            }
         };
 
         return .{
@@ -56,6 +68,7 @@ pub const TaskStore = struct {
             .vtable = &.{
                 .save = gen.save,
                 .load = gen.load,
+                .loadInto = gen.loadInto,
             },
         };
     }
@@ -100,12 +113,18 @@ pub fn FileStore(Format: type) type {
         }
 
         pub fn load(self: *Self, allocator: std.mem.Allocator) !std.ArrayList(Task) {
+            var tasklist = std.ArrayList(Task).init(allocator);
+            try self.loadInto(&tasklist);
+            return tasklist;
+        }
+
+        pub fn loadInto(self: *Self, tasklist: *std.ArrayList(Task)) !void {
             self.contents = try fs.cwd().readFileAlloc(
-                allocator,
+                self.allocator,
                 self.path,
                 std.math.maxInt(usize),
             );
-            return try Format.parseTaskList(allocator, self.contents);
+            return try Format.parseTaskList(tasklist, self.contents);
         }
     };
 }

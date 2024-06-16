@@ -2,6 +2,14 @@ const std = @import("std");
 const testing = std.testing;
 const util = @import("test-util");
 const TestStore = util.TestStore;
+const Task = @import("ido").Task;
+const allocator = testing.allocator;
+const FOUR_TODOS = util.FOUR_TODOS;
+const FOUR_DONES = util.FOUR_DONES;
+const FOUR_MIXED = util.FOUR_MIXED;
+const ONE_TODO = util.ONE_TODO;
+const ONE_DONE = util.ONE_DONE;
+const EMPTY_TASKS = util.EMPTY_TASKS;
 
 test "TestStore empty store save empty" {
     var test_store = TestStore.init(&.{});
@@ -113,4 +121,32 @@ test "TestStore load then save" {
     try test_store.save(tasklist.items);
 
     try util.expectTaskSliceEqual(&.{ task1, task2 }, test_store.tasks);
+}
+
+test "TestStore emtpy loadInto empty" {
+    try testLoadInto(.{});
+}
+
+test "TestStore one task loadInto empty" {
+    try testLoadInto(.{ .stored = ONE_TODO, .expected = ONE_TODO });
+}
+
+const LoadIntoConfig = struct {
+    stored: []const Task = EMPTY_TASKS,
+    expected: []const Task = EMPTY_TASKS,
+    listed: []const Task = EMPTY_TASKS,
+};
+
+fn testLoadInto(args: LoadIntoConfig) !void {
+    var tasklist = try std.ArrayList(Task).initCapacity(allocator, args.listed.len);
+    if (args.listed.len > 0) {
+        try tasklist.appendSlice(args.listed);
+    }
+    defer tasklist.deinit();
+
+    var test_store = TestStore.init(args.stored);
+    const store = test_store.taskStore();
+    try store.loadInto(&tasklist);
+
+    try util.expectTaskSliceEqual(args.expected, tasklist.items);
 }

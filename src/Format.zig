@@ -32,10 +32,9 @@ pub fn serializeTask(task: Task, writer: anytype) !void {
 }
 
 pub fn parseTaskList(
-    allocator: std.mem.Allocator,
+    tasklist: *std.ArrayList(Task),
     input: []const u8,
-) !std.ArrayList(Task) {
-    var tasklist = std.ArrayList(Task).init(allocator);
+) !void {
     errdefer tasklist.deinit();
     var start: usize = 0;
     while (findNextTask(input[start..])) |index| {
@@ -50,8 +49,6 @@ pub fn parseTaskList(
             break;
         }
     }
-
-    return tasklist;
 }
 
 pub fn parseTask(input: []const u8) !Task {

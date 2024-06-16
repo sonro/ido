@@ -150,7 +150,8 @@ test "no task error" {
 }
 
 fn checkTaskList(comptime expected: []const ido.Task, comptime input: []const u8) !void {
-    const tasklist = try Format.parseTaskList(allocator, input);
+    var tasklist = std.ArrayList(ido.Task).init(allocator);
+    try Format.parseTaskList(&tasklist, input);
     defer tasklist.deinit();
     try util.expectTaskSliceEqual(expected, tasklist.items);
 }

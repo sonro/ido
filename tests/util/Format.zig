@@ -21,20 +21,15 @@ pub fn serializeTask(task: Task, writer: anytype) !void {
 }
 
 pub fn parseTaskList(
-    allocator: std.mem.Allocator,
+    tasklist: *std.ArrayList(Task),
     input: []const u8,
-) !std.ArrayList(Task) {
-    var tasklist = std.ArrayList(Task).init(allocator);
-    errdefer tasklist.deinit();
-
+) !void {
     // split by newlines
     var lines = std.mem.tokenize(u8, input, "\n");
     while (lines.next()) |line| {
         if (line.len == 0) continue;
         try tasklist.append(try parseTask(line));
     }
-
-    return tasklist;
 }
 
 pub fn parseTask(input: []const u8) !Task {

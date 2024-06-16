@@ -21,11 +21,15 @@ pub const TestStore = struct {
     }
 
     pub fn load(
-        self: *TestStore,
+        self: *const TestStore,
         allocator: std.mem.Allocator,
     ) !std.ArrayList(ido.Task) {
         var tasklist = std.ArrayList(ido.Task).init(allocator);
         try tasklist.appendSlice(self.tasks);
         return tasklist;
+    }
+
+    pub fn loadInto(self: *const TestStore, tasklist: *std.ArrayList(ido.Task)) !void {
+        try tasklist.appendSlice(self.tasks);
     }
 };
