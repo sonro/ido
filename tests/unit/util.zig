@@ -131,10 +131,31 @@ test "TestStore one task loadInto empty" {
     try testLoadInto(.{ .stored = ONE_TODO, .expected = ONE_TODO });
 }
 
+test "TestStore one task loadInto one task" {
+    try testLoadInto(.{
+        .listed = ONE_TODO,
+        .stored = ONE_DONE,
+        .expected = &.{ ONE_TODO[0], ONE_DONE[0] },
+    });
+}
+
+test "TestStore multi task loadInto multi task" {
+    var expected: [8]Task = undefined;
+    inline for (0..4) |i| {
+        expected[i] = FOUR_TODOS[i];
+        expected[i + 4] = FOUR_DONES[i];
+    }
+    try testLoadInto(.{
+        .listed = FOUR_TODOS,
+        .stored = FOUR_DONES,
+        .expected = &expected,
+    });
+}
+
 const LoadIntoConfig = struct {
+    listed: []const Task = EMPTY_TASKS,
     stored: []const Task = EMPTY_TASKS,
     expected: []const Task = EMPTY_TASKS,
-    listed: []const Task = EMPTY_TASKS,
 };
 
 fn testLoadInto(args: LoadIntoConfig) !void {
