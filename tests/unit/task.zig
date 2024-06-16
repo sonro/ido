@@ -6,6 +6,16 @@ const util = @import("test-util");
 const checkTaskNotDone = util.checkTaskNotDone;
 const checkTaskDone = util.checkTaskDone;
 
+test "create with anon struct" {
+    const task = .{ .name = "anon", .description = "some", .done = true };
+    try checkTaskDone(task, "anon", "some");
+}
+
+test "create with anon struct only name" {
+    const task = .{ .name = "anon" };
+    try checkTaskNotDone(task, "anon", null);
+}
+
 test "create new simple task" {
     const task = try ido.Task.newSimple("a");
     try checkTaskNotDone(task, "a", null);

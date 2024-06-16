@@ -7,8 +7,8 @@ pub const Error = error{
 
 pub const Task = struct {
     name: []const u8,
-    description: ?[]const u8,
-    done: bool,
+    description: ?[]const u8 = null,
+    done: bool = false,
 
     pub fn new(name: []const u8, description: []const u8) Error!Task {
         return rawNew(name, description, false);
