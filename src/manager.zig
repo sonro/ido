@@ -32,6 +32,11 @@ pub const Manager = struct {
         try self.store.save(self.tasks.items);
     }
 
+    pub fn reload(self: *Manager) !void {
+        self.tasks.deinit();
+        self.tasks = try self.store.load(self.allocator);
+    }
+
     pub fn allTasks(self: *const Manager) []const Task {
         return self.tasks.items;
     }
