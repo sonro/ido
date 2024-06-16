@@ -32,6 +32,36 @@ fn testAllTasks(manager: *Manager, expected: []const Task) !void {
     try util.expectTaskSliceEqual(expected, manager.allTasks());
 }
 
+test "save empty over empty" {
+    try checkSave(EMPTY_TASKS, EMPTY_TASKS);
+}
+
+test "save empty over full" {
+    try checkSave(FOUR_MIXED, EMPTY_TASKS);
+}
+
+test "save full over empty" {
+    try checkSave(EMPTY_TASKS, FOUR_MIXED);
+}
+
+fn checkSave(existing: []const Task, new: []const Task) !void {
+    var tester = ManagerTester(testSave){
+        .tasks = existing,
+        .expected_saves = 1,
+        .expected_manual_saves = 1,
+    };
+    try tester.call(.{new});
+}
+
+fn testSave(manager: *Manager, expected: []const Task) !void {
+    manager.tasks.clearRetainingCapacity();
+    try manager.tasks.appendSlice(expected);
+    try manager.save();
+    const actual = try manager.store.load(allocator);
+    defer actual.deinit();
+    try util.expectTaskSliceEqual(expected, actual.items);
+}
+
 test "get one task with multiple task store" {
     var tester = ManagerTester(testGetOne){
         .tasks = FOUR_TODOS,
@@ -357,6 +387,7 @@ fn ManagerTester(test_fn: anytype) type {
         tasks: []const Task,
         /// Expected number of writes to the store.
         expected_saves: usize,
+        expected_manual_saves: usize = 0,
         const Self = @This();
 
         /// Test the function on both an
@@ -379,7 +410,7 @@ fn ManagerTester(test_fn: anytype) type {
             var manager = try Manager.initManualSave(allocator, store.taskStore());
             defer manager.deinit();
             try @call(.auto, test_fn, .{&manager} ++ args);
-            try testing.expectEqual(0, store.saved);
+            try testing.expectEqual(self.expected_manual_saves, store.saved);
         }
     };
 }
