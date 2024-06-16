@@ -33,8 +33,8 @@ pub const Manager = struct {
     }
 
     pub fn reload(self: *Manager) !void {
-        self.tasks.deinit();
-        self.tasks = try self.store.load(self.allocator);
+        self.tasks.clearRetainingCapacity();
+        try self.store.loadInto(&self.tasks);
     }
 
     pub fn allTasks(self: *const Manager) []const Task {

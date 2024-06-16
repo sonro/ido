@@ -62,8 +62,12 @@ fn testSave(manager: *Manager, expected: []const Task) !void {
     try util.expectTaskSliceEqual(expected, actual.items);
 }
 
-test "load empty tasks" {
+test "reload empty tasks" {
     try checkReload(EMPTY_TASKS);
+}
+
+test "reload multiple tasks" {
+    try checkReload(FOUR_MIXED);
 }
 
 fn checkReload(expected: []const Task) !void {
