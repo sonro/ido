@@ -324,13 +324,6 @@ fn countDone(tasks: []const Task) usize {
     return count;
 }
 
-fn testIndexError(manager: *Manager, method: anytype, index: usize) !void {
-    try testing.expectError(
-        error.OutOfRange,
-        @call(.auto, method, .{ manager, index }),
-    );
-}
-
 fn testMark(manager: *Manager, index: usize, expected: bool, actual: Task) !void {
     const got = manager.getTask(index);
     try testing.expect(got != null);
@@ -347,14 +340,21 @@ fn checkTestFn(opts: CheckOpts, test_fn: anytype, args: anytype) !void {
     try tester.call(args);
 }
 
-fn checkIndexError(opts: CheckOpts, method: anytype) !void {
-    try checkTestFnNoSaves(opts, testIndexError, .{ method, opts.index });
-}
-
 fn checkTestFnNoSaves(opts: CheckOpts, test_fn: anytype, args: anytype) !void {
     var op = opts;
     op.auto_saves = 0;
     try checkTestFn(op, test_fn, args);
+}
+
+fn checkIndexError(opts: CheckOpts, method: anytype) !void {
+    try checkTestFnNoSaves(opts, testIndexError, .{ method, opts.index });
+}
+
+fn testIndexError(manager: *Manager, method: anytype, index: usize) !void {
+    try testing.expectError(
+        error.OutOfRange,
+        @call(.auto, method, .{ manager, index }),
+    );
 }
 
 const CheckOpts = struct {
