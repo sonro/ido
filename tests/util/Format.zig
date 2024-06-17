@@ -25,7 +25,7 @@ pub fn parseTaskList(
     input: []const u8,
 ) !void {
     // split by newlines
-    var lines = std.mem.tokenize(u8, input, "\n");
+    var lines = std.mem.tokenizeScalar(u8, input, '\n');
     while (lines.next()) |line| {
         if (line.len == 0) continue;
         try tasklist.append(try parseTask(line));
