@@ -13,19 +13,15 @@ const ONE_DONE = util.ONE_DONE;
 const EMPTY_TASKS = util.EMPTY_TASKS;
 
 test "all tasks empty store" {
-    var tester = ManagerTester(testAllTasks){
-        .tasks = EMPTY_TASKS,
-        .auto_saves = 0,
-    };
-    try tester.call(.{EMPTY_TASKS});
+    try checkAllTasks(EMPTY_TASKS);
 }
 
 test "all tasks non empty store" {
-    var tester = ManagerTester(testAllTasks){
-        .tasks = FOUR_TODOS,
-        .auto_saves = 0,
-    };
-    try tester.call(.{FOUR_TODOS});
+    try checkAllTasks(FOUR_TODOS);
+}
+
+fn checkAllTasks(tasks: []const Task) !void {
+    try checkTestFnNoSaves(.{ .stored = tasks }, testAllTasks, .{tasks});
 }
 
 fn testAllTasks(manager: *Manager, expected: []const Task) !void {
@@ -128,9 +124,7 @@ test "get one task with empty store" {
 }
 
 fn checkGetOne(opts: CheckOpts) !void {
-    var op = opts;
-    op.auto_saves = 0;
-    try checkTestFn(op, testGetOne, .{ opts.index, opts.task });
+    try checkTestFnNoSaves(opts, testGetOne, .{ opts.index, opts.task });
 }
 
 fn testGetOne(manager: *Manager, index: usize, expected: ?Task) !void {
@@ -354,10 +348,10 @@ fn checkTestFn(opts: CheckOpts, test_fn: anytype, args: anytype) !void {
 }
 
 fn checkIndexError(opts: CheckOpts, method: anytype) !void {
-    try checkErrorTestFn(opts, testIndexError, .{ method, opts.index });
+    try checkTestFnNoSaves(opts, testIndexError, .{ method, opts.index });
 }
 
-fn checkErrorTestFn(opts: CheckOpts, test_fn: anytype, args: anytype) !void {
+fn checkTestFnNoSaves(opts: CheckOpts, test_fn: anytype, args: anytype) !void {
     var op = opts;
     op.auto_saves = 0;
     try checkTestFn(op, test_fn, args);
