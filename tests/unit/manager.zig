@@ -15,7 +15,7 @@ const EMPTY_TASKS = util.EMPTY_TASKS;
 test "all tasks empty store" {
     var tester = ManagerTester(testAllTasks){
         .tasks = EMPTY_TASKS,
-        .expected_saves = 0,
+        .auto_saves = 0,
     };
     try tester.call(.{EMPTY_TASKS});
 }
@@ -23,7 +23,7 @@ test "all tasks empty store" {
 test "all tasks non empty store" {
     var tester = ManagerTester(testAllTasks){
         .tasks = FOUR_TODOS,
-        .expected_saves = 0,
+        .auto_saves = 0,
     };
     try tester.call(.{FOUR_TODOS});
 }
@@ -33,24 +33,21 @@ fn testAllTasks(manager: *Manager, expected: []const Task) !void {
 }
 
 test "save empty over empty" {
-    try checkSave(EMPTY_TASKS, EMPTY_TASKS);
+    try checkSave(.{ .stored = EMPTY_TASKS, .expected = EMPTY_TASKS });
 }
 
 test "save empty over full" {
-    try checkSave(FOUR_MIXED, EMPTY_TASKS);
+    try checkSave(.{ .stored = FOUR_MIXED, .expected = EMPTY_TASKS });
 }
 
 test "save full over empty" {
-    try checkSave(EMPTY_TASKS, FOUR_MIXED);
+    try checkSave(.{ .stored = EMPTY_TASKS, .expected = FOUR_MIXED });
 }
 
-fn checkSave(existing: []const Task, new: []const Task) !void {
-    var tester = ManagerTester(testSave){
-        .tasks = existing,
-        .expected_saves = 1,
-        .expected_manual_saves = 1,
-    };
-    try tester.call(.{new});
+fn checkSave(opts: CheckOpts) !void {
+    var op = opts;
+    op.manual_saves = 1;
+    try checkTestFn(op, testSave, .{op.expected});
 }
 
 fn testSave(manager: *Manager, expected: []const Task) !void {
@@ -70,13 +67,9 @@ test "reload multiple tasks" {
     try checkReload(FOUR_MIXED);
 }
 
-fn checkReload(expected: []const Task) !void {
-    var tester = ManagerTester(testReload){
-        .tasks = EMPTY_TASKS,
-        .expected_saves = 1,
-        .expected_manual_saves = 1,
-    };
-    try tester.call(.{expected});
+fn checkReload(tasks: []const Task) !void {
+    const ops = CheckOpts{ .manual_saves = 1 };
+    try checkTestFn(ops, testReload, .{tasks});
 }
 
 fn testReload(manager: *Manager, expected: []const Task) !void {
@@ -106,12 +99,8 @@ test "add task non empty store" {
     });
 }
 
-fn checkAddTask(args: anytype) !void {
-    var tester = ManagerTester(testAddTask){
-        .tasks = args.stored,
-        .expected_saves = 1,
-    };
-    try tester.call(.{ args.task, args.expected });
+fn checkAddTask(opts: CheckOpts) !void {
+    try checkTestFn(opts, testAddTask, .{ opts.task.?, opts.expected });
 }
 
 fn testAddTask(manager: *Manager, task: Task, expected: []const Task) !void {
@@ -123,39 +112,25 @@ fn testAddTask(manager: *Manager, task: Task, expected: []const Task) !void {
 }
 
 test "get one task with multiple task store" {
-    var tester = ManagerTester(testGetOne){
-        .tasks = FOUR_TODOS,
-        .expected_saves = 0,
-    };
-    const index = 1;
-    try tester.call(.{ index, FOUR_TODOS[index] });
+    try checkGetOne(.{ .stored = FOUR_TODOS, .index = 1, .task = FOUR_TODOS[1] });
 }
 
 test "get one task with single task store" {
-    var tester = ManagerTester(testGetOne){
-        .tasks = ONE_TODO,
-        .expected_saves = 0,
-    };
-    const index = 0;
-    try tester.call(.{ index, ONE_TODO[index] });
+    try checkGetOne(.{ .stored = ONE_TODO, .index = 0, .task = ONE_TODO[0] });
 }
 
 test "get one with invalid index" {
-    var tester = ManagerTester(testGetOne){
-        .tasks = ONE_TODO,
-        .expected_saves = 0,
-    };
-    const index = 1;
-    try tester.call(.{ index, null });
+    try checkGetOne(.{ .stored = ONE_TODO, .index = 1, .task = null });
 }
 
 test "get one task with empty store" {
-    var tester = ManagerTester(testGetOne){
-        .tasks = EMPTY_TASKS,
-        .expected_saves = 0,
-    };
-    const index = 0;
-    try tester.call(.{ index, null });
+    try checkGetOne(.{ .stored = EMPTY_TASKS, .index = 0, .task = null });
+}
+
+fn checkGetOne(opts: CheckOpts) !void {
+    var op = opts;
+    op.auto_saves = 0;
+    try checkTestFn(op, testGetOne, .{ opts.index, opts.task });
 }
 
 fn testGetOne(manager: *Manager, index: usize, expected: ?Task) !void {
@@ -168,48 +143,32 @@ fn testGetOne(manager: *Manager, index: usize, expected: ?Task) !void {
 }
 
 test "mark done one task" {
-    var tester = ManagerTester(testMarkDone){
-        .tasks = ONE_TODO,
-        .expected_saves = 1,
-    };
-    const index = 0;
-    try tester.call(.{index});
+    try checkMarkDone(.{ .stored = ONE_TODO, .index = 0, .auto_saves = 1 });
 }
 
 test "mark done full store of dones" {
-    var tester = ManagerTester(testMarkDone){
-        .tasks = FOUR_DONES,
-        .expected_saves = 1,
-    };
-    const index = 3;
-    try tester.call(.{index});
+    // TODO:
+    try checkMarkDone(.{ .stored = FOUR_DONES, .index = 1, .auto_saves = 1 });
 }
 
 test "mark done full store of todos" {
-    var tester = ManagerTester(testMarkDone){
-        .tasks = FOUR_TODOS,
-        .expected_saves = 1,
-    };
-    const index = 3;
-    try tester.call(.{index});
+    try checkMarkDone(.{ .stored = FOUR_TODOS, .index = 3, .auto_saves = 1 });
 }
 
 test "mark done invalid index" {
-    var tester = ManagerTester(testIndexError){
-        .tasks = ONE_TODO,
-        .expected_saves = 0,
-    };
-    const index = 1;
-    try tester.call(.{ Manager.markDone, index });
+    try checkMarkDoneError(.{ .stored = ONE_TODO, .index = 1 });
 }
 
 test "mark done empty store" {
-    var tester = ManagerTester(testIndexError){
-        .tasks = EMPTY_TASKS,
-        .expected_saves = 0,
-    };
-    const index = 0;
-    try tester.call(.{ Manager.markDone, index });
+    try checkMarkDoneError(.{ .stored = EMPTY_TASKS, .index = 0 });
+}
+
+fn checkMarkDone(opts: CheckOpts) !void {
+    try checkTestFn(opts, testMarkDone, .{opts.index});
+}
+
+fn checkMarkDoneError(opts: CheckOpts) !void {
+    try checkIndexError(opts, Manager.markDone);
 }
 
 fn testMarkDone(manager: *Manager, index: usize) !void {
@@ -218,48 +177,32 @@ fn testMarkDone(manager: *Manager, index: usize) !void {
 }
 
 test "unmark done one task" {
-    var tester = ManagerTester(testUnmarkDone){
-        .tasks = ONE_DONE,
-        .expected_saves = 1,
-    };
-    const index = 0;
-    try tester.call(.{index});
+    try checkUnmarkDone(.{ .stored = ONE_DONE, .index = 0, .auto_saves = 1 });
 }
 
 test "unmark done full store of todos" {
-    var tester = ManagerTester(testUnmarkDone){
-        .tasks = FOUR_TODOS,
-        .expected_saves = 1,
-    };
-    const index = 2;
-    try tester.call(.{index});
+    // TODO:
+    try checkUnmarkDone(.{ .stored = FOUR_TODOS, .index = 2, .auto_saves = 1 });
 }
 
 test "unmark done full store of dones" {
-    var tester = ManagerTester(testUnmarkDone){
-        .tasks = FOUR_DONES,
-        .expected_saves = 1,
-    };
-    const index = 3;
-    try tester.call(.{index});
+    try checkUnmarkDone(.{ .stored = FOUR_DONES, .index = 3, .auto_saves = 1 });
 }
 
 test "unmark done invalid index" {
-    var tester = ManagerTester(testIndexError){
-        .tasks = ONE_TODO,
-        .expected_saves = 0,
-    };
-    const index = 1;
-    try tester.call(.{ Manager.unmarkDone, index });
+    try checkUnmarkDoneError(.{ .stored = ONE_DONE, .index = 1 });
 }
 
 test "unmark done empty store" {
-    var tester = ManagerTester(testIndexError){
-        .tasks = EMPTY_TASKS,
-        .expected_saves = 0,
-    };
-    const index = 0;
-    try tester.call(.{ Manager.unmarkDone, index });
+    try checkUnmarkDoneError(.{ .stored = EMPTY_TASKS, .index = 0 });
+}
+
+fn checkUnmarkDone(opts: CheckOpts) !void {
+    try checkTestFn(opts, testUnmarkDone, .{opts.index});
+}
+
+fn checkUnmarkDoneError(opts: CheckOpts) !void {
+    try checkIndexError(opts, Manager.unmarkDone);
 }
 
 fn testUnmarkDone(manager: *Manager, index: usize) !void {
@@ -268,44 +211,31 @@ fn testUnmarkDone(manager: *Manager, index: usize) !void {
 }
 
 test "delete one task" {
-    var tester = ManagerTester(testDelete){
-        .tasks = ONE_TODO,
-        .expected_saves = 1,
-    };
-    const index = 0;
-    try tester.call(.{ EMPTY_TASKS, index });
+    try checkDelete(.{ .stored = ONE_TODO, .index = 0, .expected = EMPTY_TASKS });
 }
 
 test "delete invalid index" {
-    var tester = ManagerTester(testIndexError){
-        .tasks = ONE_TODO,
-        .expected_saves = 0,
-    };
-    const index = 1;
-    try tester.call(.{ Manager.delete, index });
+    try checkDeleteError(.{ .stored = ONE_TODO, .index = 1 });
 }
 
 test "delete empty store" {
-    var tester = ManagerTester(testIndexError){
-        .tasks = EMPTY_TASKS,
-        .expected_saves = 0,
-    };
-    const index = 0;
-    try tester.call(.{ Manager.delete, index });
+    try checkDeleteError(.{ .stored = EMPTY_TASKS, .index = 0 });
 }
 
 test "delete middle task and preserve order" {
-    const expected = &.{
+    try checkDelete(.{ .stored = FOUR_TODOS, .index = 1, .expected = &.{
         FOUR_TODOS[0],
         FOUR_TODOS[2],
         FOUR_TODOS[3],
-    };
-    var tester = ManagerTester(testDelete){
-        .tasks = FOUR_TODOS,
-        .expected_saves = 1,
-    };
-    const index = 1;
-    try tester.call(.{ expected, index });
+    } });
+}
+
+fn checkDelete(opts: CheckOpts) !void {
+    try checkTestFn(opts, testDelete, .{ opts.expected, opts.index });
+}
+
+fn checkDeleteError(opts: CheckOpts) !void {
+    try checkIndexError(opts, Manager.delete);
 }
 
 fn testDelete(manager: *Manager, expected: []const Task, index: usize) !void {
@@ -314,58 +244,46 @@ fn testDelete(manager: *Manager, expected: []const Task, index: usize) !void {
 }
 
 test "set task first" {
-    const expected = &.{
+    try checkSetFirst(.{ .stored = FOUR_TODOS, .index = 1, .expected = &.{
         FOUR_TODOS[1],
         FOUR_TODOS[0],
         FOUR_TODOS[2],
         FOUR_TODOS[3],
-    };
-    var tester = ManagerTester(testSetFirst){
-        .tasks = FOUR_TODOS,
-        .expected_saves = 1,
-    };
-    const index = 1;
-    try tester.call(.{ expected, index });
+    } });
 }
 
 test "set single task first" {
-    var tester = ManagerTester(testSetFirst){
-        .tasks = ONE_TODO,
-        .expected_saves = 0,
-    };
-    const index = 0;
-    try tester.call(.{ ONE_TODO, index });
+    try checkSetFirst(.{
+        .stored = ONE_TODO,
+        .index = 0,
+        .expected = ONE_TODO,
+        .auto_saves = 0,
+    });
 }
 
 test "set first invalid index" {
-    var tester = ManagerTester(testIndexError){
-        .tasks = ONE_TODO,
-        .expected_saves = 0,
-    };
-    try tester.call(.{ Manager.setFirst, 1 });
+    try checkSetFirstError(.{ .stored = ONE_TODO, .index = 1 });
 }
 
 test "set first empty store" {
-    var tester = ManagerTester(testIndexError){
-        .tasks = EMPTY_TASKS,
-        .expected_saves = 0,
-    };
-    try tester.call(.{ Manager.setFirst, 0 });
+    try checkSetFirstError(.{ .stored = EMPTY_TASKS, .index = 0 });
 }
 
 test "set first from end task and preserve order" {
-    const expected = &.{
+    try checkSetFirst(.{ .stored = FOUR_TODOS, .index = 3, .expected = &.{
         FOUR_TODOS[3],
         FOUR_TODOS[0],
         FOUR_TODOS[1],
         FOUR_TODOS[2],
-    };
-    var tester = ManagerTester(testSetFirst){
-        .tasks = FOUR_TODOS,
-        .expected_saves = 1,
-    };
-    const index = 3;
-    try tester.call(.{ expected, index });
+    } });
+}
+
+fn checkSetFirst(opts: CheckOpts) !void {
+    try checkTestFn(opts, testSetFirst, .{ opts.expected, opts.index });
+}
+
+fn checkSetFirstError(opts: CheckOpts) !void {
+    try checkIndexError(opts, Manager.setFirst);
 }
 
 fn testSetFirst(manager: *Manager, expected: []const Task, index: usize) !void {
@@ -375,35 +293,23 @@ fn testSetFirst(manager: *Manager, expected: []const Task, index: usize) !void {
 }
 
 test "delete all done empty store" {
-    var tester = ManagerTester(testDeleteAllDone){
-        .tasks = EMPTY_TASKS,
-        .expected_saves = 0,
-    };
-    try tester.call(.{});
+    try checkDeleteAllDone(.{ .stored = EMPTY_TASKS, .auto_saves = 0 });
 }
 
 test "delete all done with only dones" {
-    var tester = ManagerTester(testDeleteAllDone){
-        .tasks = FOUR_DONES,
-        .expected_saves = 1,
-    };
-    try tester.call(.{});
+    try checkDeleteAllDone(.{ .stored = FOUR_DONES, .auto_saves = 1 });
 }
 
 test "delete all done with only todos" {
-    var tester = ManagerTester(testDeleteAllDone){
-        .tasks = FOUR_TODOS,
-        .expected_saves = 0,
-    };
-    try tester.call(.{});
+    try checkDeleteAllDone(.{ .stored = FOUR_TODOS, .auto_saves = 0 });
 }
 
 test "delete all done with todos and dones" {
-    var tester = ManagerTester(testDeleteAllDone){
-        .tasks = FOUR_MIXED,
-        .expected_saves = 1,
-    };
-    try tester.call(.{});
+    try checkDeleteAllDone(.{ .stored = FOUR_MIXED, .auto_saves = 1 });
+}
+
+fn checkDeleteAllDone(opts: CheckOpts) !void {
+    try checkTestFn(opts, testDeleteAllDone, .{});
 }
 
 fn testDeleteAllDone(manager: *Manager) !void {
@@ -440,14 +346,42 @@ fn testMark(manager: *Manager, index: usize, expected: bool, actual: Task) !void
     try testing.expectEqual(expected, actual.done);
 }
 
+fn checkTestFn(opts: CheckOpts, test_fn: anytype, args: anytype) !void {
+    var tester = ManagerTester(test_fn){
+        .tasks = opts.stored,
+        .auto_saves = opts.auto_saves,
+        .manual_saves = opts.manual_saves,
+    };
+    try tester.call(args);
+}
+
+fn checkIndexError(opts: CheckOpts, method: anytype) !void {
+    try checkErrorTestFn(opts, testIndexError, .{ method, opts.index });
+}
+
+fn checkErrorTestFn(opts: CheckOpts, test_fn: anytype, args: anytype) !void {
+    var op = opts;
+    op.auto_saves = 0;
+    try checkTestFn(op, test_fn, args);
+}
+
+const CheckOpts = struct {
+    stored: []const Task = EMPTY_TASKS,
+    expected: []const Task = EMPTY_TASKS,
+    task: ?Task = null,
+    index: usize = 0,
+    auto_saves: usize = 1,
+    manual_saves: usize = 0,
+};
+
 /// Create a testing environment for a `Manager`.
 fn ManagerTester(test_fn: anytype) type {
     return struct {
         /// Tasks to put in the manager's store.
         tasks: []const Task,
         /// Expected number of writes to the store.
-        expected_saves: usize,
-        expected_manual_saves: usize = 0,
+        auto_saves: usize,
+        manual_saves: usize = 0,
         const Self = @This();
 
         /// Test the function on both an
@@ -462,7 +396,7 @@ fn ManagerTester(test_fn: anytype) type {
             var manager = try Manager.init(allocator, store.taskStore());
             defer manager.deinit();
             try @call(.auto, test_fn, .{&manager} ++ args);
-            try testing.expectEqual(self.expected_saves, store.saved);
+            try testing.expectEqual(self.auto_saves, store.saved);
         }
 
         pub fn callManual(self: *Self, args: anytype) !void {
@@ -470,7 +404,7 @@ fn ManagerTester(test_fn: anytype) type {
             var manager = try Manager.initManualSave(allocator, store.taskStore());
             defer manager.deinit();
             try @call(.auto, test_fn, .{&manager} ++ args);
-            try testing.expectEqual(self.expected_manual_saves, store.saved);
+            try testing.expectEqual(self.manual_saves, store.saved);
         }
     };
 }
