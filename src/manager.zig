@@ -54,16 +54,22 @@ pub const Manager = struct {
 
     pub fn markDone(self: *Manager, index: usize) !Task {
         if (index >= self.tasks.items.len) return error.OutOfRange;
-        self.tasks.items[index].done = true;
-        if (self.persist_all_changes) try self.store.save(self.tasks.items);
-        return self.tasks.items[index];
+        const task = &self.tasks.items[index];
+        if (!task.done) {
+            task.done = true;
+            if (self.persist_all_changes) try self.save();
+        }
+        return task.*;
     }
 
     pub fn unmarkDone(self: *Manager, index: usize) !Task {
         if (index >= self.tasks.items.len) return error.OutOfRange;
-        self.tasks.items[index].done = false;
-        if (self.persist_all_changes) try self.store.save(self.tasks.items);
-        return self.tasks.items[index];
+        const task = &self.tasks.items[index];
+        if (task.done) {
+            task.done = false;
+            if (self.persist_all_changes) try self.save();
+        }
+        return task.*;
     }
 
     pub fn delete(self: *Manager, index: usize) !void {

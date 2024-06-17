@@ -147,8 +147,7 @@ test "mark done one task" {
 }
 
 test "mark done full store of dones" {
-    // TODO:
-    try checkMarkDone(.{ .stored = FOUR_DONES, .index = 1, .auto_saves = 1 });
+    try checkMarkDone(.{ .stored = FOUR_DONES, .index = 1, .auto_saves = 0 });
 }
 
 test "mark done full store of todos" {
@@ -181,8 +180,7 @@ test "unmark done one task" {
 }
 
 test "unmark done full store of todos" {
-    // TODO:
-    try checkUnmarkDone(.{ .stored = FOUR_TODOS, .index = 2, .auto_saves = 1 });
+    try checkUnmarkDone(.{ .stored = FOUR_TODOS, .index = 2, .auto_saves = 0 });
 }
 
 test "unmark done full store of dones" {
