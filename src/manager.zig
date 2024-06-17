@@ -48,7 +48,7 @@ pub const Manager = struct {
 
     pub fn addTask(self: *Manager, task: Task) !usize {
         try self.tasks.append(task);
-        if (self.persist_all_changes) try self.store.save(self.tasks.items);
+        if (self.persist_all_changes) try self.save();
         return self.tasks.items.len - 1;
     }
 
@@ -75,7 +75,7 @@ pub const Manager = struct {
     pub fn delete(self: *Manager, index: usize) !void {
         if (index >= self.tasks.items.len) return error.OutOfRange;
         _ = self.tasks.orderedRemove(index);
-        if (self.persist_all_changes) try self.store.save(self.tasks.items);
+        if (self.persist_all_changes) try self.save();
     }
 
     pub fn setFirst(self: *Manager, index: usize) !void {
@@ -84,7 +84,7 @@ pub const Manager = struct {
         for (self.tasks.items[0..index]) |*task| {
             std.mem.swap(Task, task, &self.tasks.items[index]);
         }
-        if (self.persist_all_changes) try self.store.save(self.tasks.items);
+        if (self.persist_all_changes) try self.save();
     }
 
     pub fn deleteAllDone(self: *Manager) !void {
@@ -99,7 +99,7 @@ pub const Manager = struct {
             }
         }
         if (self.persist_all_changes and deleted > 0) {
-            try self.store.save(self.tasks.items);
+            try self.save();
         }
     }
 };
