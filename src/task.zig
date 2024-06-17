@@ -19,15 +19,17 @@ pub const Task = struct {
     }
 
     pub fn format(self: Task, _: []const u8, _: std.fmt.FormatOptions, writer: anytype) !void {
-        if (self.done) {
-            try writer.writeAll(ido.DONE_PATTERN);
-        } else {
-            try writer.writeAll(ido.TODO_PATTERN);
-        }
-        try writer.print(" {s}", .{self.name});
-        if (self.description) |desc| {
-            try writer.print("\n{s}", .{desc});
-        }
+        try writer.print(
+            \\Task.{{
+            \\    .name = "{s}",
+            \\    .description = "{s}",
+            \\    .done = {s},
+            \\}}
+        , .{
+            self.name,
+            self.description orelse "",
+            if (self.done) "true" else "false",
+        });
     }
 
     fn rawNew(name: []const u8, description: ?[]const u8, done: bool) Error!Task {

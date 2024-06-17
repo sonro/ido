@@ -55,28 +55,57 @@ test "mark task as done" {
 
 test "format simple task" {
     const task = try Task.newSimple("a");
-    try checkTaskFmt("TODO: a", task);
+    const expected = try createFormatString("a", null, false);
+    defer allocator.free(expected);
+    try checkTaskFmt(expected, task);
 }
 
 test "format simple done task" {
     var task = try Task.newSimple("a");
     task.done = true;
-    try checkTaskFmt("DONE: a", task);
+    const expected = try createFormatString("a", null, true);
+    defer allocator.free(expected);
+    try checkTaskFmt(expected, task);
 }
 
 test "format task with description" {
     const task = try Task.new("a", "b");
-    try checkTaskFmt("TODO: a\nb", task);
+    const expected = try createFormatString("a", "b", false);
+    defer allocator.free(expected);
+    try checkTaskFmt(expected, task);
 }
 
 test "format task with description and done" {
     var task = try Task.new("a", "b");
     task.done = true;
-    try checkTaskFmt("DONE: a\nb", task);
+    const expected = try createFormatString("a", "b", true);
+    defer allocator.free(expected);
+    try checkTaskFmt(expected, task);
 }
 
-fn checkTaskFmt(comptime expected: []const u8, task: Task) !void {
-    var buf = [_]u8{0} ** expected.len;
+fn createFormatString(
+    name: []const u8,
+    description: ?[]const u8,
+    done: bool,
+) ![]const u8 {
+    var string = std.ArrayList(u8).init(allocator);
+    try string.writer().print(
+        \\Task.{{
+        \\    .name = "{s}",
+        \\    .description = "{s}",
+        \\    .done = {s},
+        \\}}
+    , .{
+        name,
+        if (description) |desc| desc else "",
+        if (done) "true" else "false",
+    });
+
+    return string.toOwnedSlice();
+}
+
+fn checkTaskFmt(expected: []const u8, task: Task) !void {
+    var buf = [_]u8{0} ** 100;
     const formatted = try std.fmt.bufPrint(&buf, "{}", .{task});
     try testing.expectEqualStrings(expected, formatted);
 }
