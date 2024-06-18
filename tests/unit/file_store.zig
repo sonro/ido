@@ -14,13 +14,14 @@ const FOUR_MIXED = util.FOUR_MIXED;
 const Store = FileStore(TestFormat);
 
 test "init with empty file" {
-    const contents = "";
-    const tester = FileStoreTester(testInit){ .contents = contents };
-    try tester.call(.{});
+    try checkInit("");
 }
 
 test "init with non-empty file" {
-    const contents = "hello world";
+    try checkInit("hello world");
+}
+
+fn checkInit(contents: []const u8) !void {
     const tester = FileStoreTester(testInit){ .contents = contents };
     try tester.call(.{});
 }
@@ -28,9 +29,15 @@ test "init with non-empty file" {
 fn testInit(_: *Store) !void {}
 
 test "load empty file" {
-    const contents = "";
-    const tester = FileStoreTester(testLoad){ .contents = contents };
-    try tester.call(.{EMPTY_TASKS});
+    try checkLoad(EMPTY_TASKS);
+}
+
+test "load one task" {
+    try checkLoad(ONE_TODO);
+}
+
+test "load multiple tasks" {
+    try checkLoad(FOUR_MIXED);
 }
 
 test "load invalid file" {
@@ -39,18 +46,8 @@ test "load invalid file" {
     try tester.call(.{});
 }
 
-test "load one task" {
-    const contents = try generateContents(ONE_TODO);
-    defer allocator.free(contents);
-    const tester = FileStoreTester(testLoad){ .contents = contents };
-    try tester.call(.{ONE_TODO});
-}
-
-test "load multiple tasks" {
-    const contents = try generateContents(FOUR_MIXED);
-    defer allocator.free(contents);
-    const tester = FileStoreTester(testLoad){ .contents = contents };
-    try tester.call(.{FOUR_MIXED});
+fn checkLoad(tasks: []const Task) !void {
+    try checkTestFn(testLoad, tasks, tasks);
 }
 
 fn testLoad(store: *Store, expected: []const Task) !void {
@@ -59,38 +56,54 @@ fn testLoad(store: *Store, expected: []const Task) !void {
     try util.expectTaskSliceEqual(expected, actual.items);
 }
 
+test "load into empty file" {
+    try checkLoadInto(EMPTY_TASKS);
+}
+
+test "load into one task" {
+    try checkLoadInto(ONE_TODO);
+}
+
+test "load into multiple tasks" {
+    try checkLoadInto(FOUR_MIXED);
+}
+
+fn checkLoadInto(tasks: []const Task) !void {
+    try checkTestFn(testLoadInto, tasks, tasks);
+}
+
+fn testLoadInto(store: *Store, expected: []const Task) !void {
+    var tasklist = std.ArrayList(Task).init(allocator);
+    defer tasklist.deinit();
+    try store.loadInto(&tasklist);
+    try util.expectTaskSliceEqual(expected, tasklist.items);
+}
+
 test "save no tasks over no tasks" {
-    const contents = try generateContents(EMPTY_TASKS);
-    defer allocator.free(contents);
-    const tester = FileStoreTester(testSave){ .contents = contents };
-    try tester.callAndTestFile(.{EMPTY_TASKS}, contents);
+    try checkSave(EMPTY_TASKS, EMPTY_TASKS);
 }
 
 test "save no tasks over one task" {
-    const contents = try generateContents(ONE_TODO);
-    const expected = try generateContents(EMPTY_TASKS);
-    defer allocator.free(contents);
-    defer allocator.free(expected);
-    const tester = FileStoreTester(testSave){ .contents = contents };
-    try tester.callAndTestFile(.{EMPTY_TASKS}, expected);
+    try checkSave(ONE_TODO, EMPTY_TASKS);
 }
 
 test "save one task over no tasks" {
-    const contents = try generateContents(EMPTY_TASKS);
-    const expected = try generateContents(ONE_TODO);
-    defer allocator.free(contents);
-    defer allocator.free(expected);
-    const tester = FileStoreTester(testSave){ .contents = contents };
-    try tester.callAndTestFile(.{ONE_TODO}, expected);
+    try checkSave(EMPTY_TASKS, ONE_TODO);
 }
 
 test "save multiple tasks over one task" {
-    const contents = try generateContents(ONE_TODO);
-    const expected = try generateContents(FOUR_MIXED);
+    try checkSave(ONE_TODO, FOUR_MIXED);
+}
+
+fn checkSave(stored: []const Task, save: []const Task) !void {
+    const contents = try generateContents(stored);
     defer allocator.free(contents);
+
+    const expected = try generateContents(save);
     defer allocator.free(expected);
-    const tester = FileStoreTester(testSave){ .contents = contents };
-    try tester.callAndTestFile(.{FOUR_MIXED}, expected);
+
+    const tester = FileStoreTester(testSaveThenLoad){ .contents = contents };
+    try tester.callAndTestFile(.{save}, expected);
 }
 
 fn testSave(store: *Store, tasks: []const Task) !void {
@@ -98,46 +111,53 @@ fn testSave(store: *Store, tasks: []const Task) !void {
 }
 
 test "save then load no tasks" {
-    const contents = try generateContents(EMPTY_TASKS);
-    defer allocator.free(contents);
-    const tester = FileStoreTester(testSaveThenLoad){ .contents = contents };
-    try tester.call(.{EMPTY_TASKS});
+    try checkSaveThenLoad(EMPTY_TASKS, EMPTY_TASKS);
 }
 
 test "save then load one task over no tasks" {
-    const contents = try generateContents(EMPTY_TASKS);
-    defer allocator.free(contents);
-    const tester = FileStoreTester(testSaveThenLoad){ .contents = contents };
-    try tester.call(.{ONE_TODO});
+    try checkSaveThenLoad(EMPTY_TASKS, ONE_TODO);
 }
 
 test "save then load multiple tasks over one task" {
-    const contents = try generateContents(ONE_TODO);
-    defer allocator.free(contents);
-    const tester = FileStoreTester(testSaveThenLoad){ .contents = contents };
-    try tester.call(.{FOUR_MIXED});
+    try checkSaveThenLoad(ONE_TODO, FOUR_MIXED);
 }
 
-fn testSaveThenLoad(store: *Store, expected: []const Task) !void {
-    try store.save(expected);
+fn checkSaveThenLoad(stored: []const Task, save: []const Task) !void {
+    try checkTestFn(testSaveThenLoad, stored, save);
+}
+
+fn testSaveThenLoad(store: *Store, tasks: []const Task) !void {
+    try store.save(tasks);
     const actual = try store.load(allocator);
     defer actual.deinit();
-    try util.expectTaskSliceEqual(expected, actual.items);
+    try util.expectTaskSliceEqual(tasks, actual.items);
 }
 
 test "interface save then load" {
-    const contents = try generateContents(FOUR_MIXED);
-    defer allocator.free(contents);
-    const tester = FileStoreTester(testInterfaceSaveThenLoad){ .contents = contents };
-    try tester.call(.{FOUR_MIXED});
+    try checkTestFn(testInterfaceSaveThenLoad, EMPTY_TASKS, FOUR_MIXED);
 }
 
-fn testInterfaceSaveThenLoad(store: *Store, expected: []const Task) !void {
+fn testInterfaceSaveThenLoad(store: *Store, tasks: []const Task) !void {
     const taskStore = store.taskStore();
-    try taskStore.save(expected);
+    try taskStore.save(tasks);
     const actual = try taskStore.load(allocator);
     defer actual.deinit();
-    try util.expectTaskSliceEqual(expected, actual.items);
+    try util.expectTaskSliceEqual(tasks, actual.items);
+}
+
+test "interface save then load into" {
+    try checkTestFn(testInterfaceSaveThenLoadInto, FOUR_MIXED[0..2], FOUR_MIXED[2..]);
+}
+
+fn testInterfaceSaveThenLoadInto(store: *Store, tasks: []const Task) !void {
+    const taskStore = store.taskStore();
+    try taskStore.save(tasks);
+
+    var tasklist = std.ArrayList(Task).init(allocator);
+    defer tasklist.deinit();
+
+    try taskStore.loadInto(&tasklist);
+    try util.expectTaskSliceEqual(tasks, tasklist.items);
 }
 
 fn testInvalidFormatError(store: *Store) !void {
@@ -149,6 +169,13 @@ fn generateContents(tasks: []const Task) ![]const u8 {
     errdefer buf.deinit();
     try TestFormat.serializeTaskList(tasks, buf.writer());
     return buf.toOwnedSlice();
+}
+
+fn checkTestFn(test_fn: anytype, stored: []const Task, tasks: []const Task) !void {
+    const contents = try generateContents(stored);
+    defer allocator.free(contents);
+    const tester = FileStoreTester(test_fn){ .contents = contents };
+    try tester.call(.{tasks});
 }
 
 fn FileStoreTester(test_fn: anytype) type {
