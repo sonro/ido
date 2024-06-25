@@ -3,6 +3,7 @@ const testing = std.testing;
 const allocator = testing.allocator;
 const ido = @import("ido");
 const Format = ido.Format;
+const Task = ido.Task;
 const util = @import("test-util");
 const checkTaskNotDone = util.checkTaskNotDone;
 const checkTaskDone = util.checkTaskDone;
@@ -149,8 +150,8 @@ test "no task error" {
     try testing.expectError(error.NoTask, res);
 }
 
-fn checkTaskList(comptime expected: []const ido.Task, comptime input: []const u8) !void {
-    var tasklist = std.ArrayList(ido.Task).init(allocator);
+fn checkTaskList(comptime expected: []const Task, comptime input: []const u8) !void {
+    var tasklist = try std.ArrayList(Task).initCapacity(allocator, expected.len);
     try Format.parseTaskList(&tasklist, input);
     defer tasklist.deinit();
     try util.expectTaskSliceEqual(expected, tasklist.items);
