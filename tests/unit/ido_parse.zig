@@ -13,36 +13,51 @@ test "tasklist from empty string" {
 }
 
 test "tasklist from single task" {
-    try checkTaskList(&.{
-        .{ .name = "foo", .description = null, .done = false },
-    }, "TODO: foo");
+    try checkTaskList(
+        &.{
+            .{ .name = "foo" },
+        },
+        "TODO: foo",
+    );
 }
 
 test "tasklist from multiple tasks" {
-    try checkTaskList(&.{
-        .{ .name = "foo", .description = null, .done = false },
-        .{ .name = "bar", .description = null, .done = true },
-    }, "TODO: foo\nDONE: bar");
+    try checkTaskList(
+        &.{
+            .{ .name = "foo" },
+            .{ .name = "bar", .done = true },
+        },
+        "TODO: foo\nDONE: bar",
+    );
 }
 
 test "tasklist from multiple tasks using blank lines" {
-    try checkTaskList(&.{
-        .{ .name = "foo", .description = null, .done = false },
-        .{ .name = "bar", .description = null, .done = true },
-    }, "\n\nTODO: foo\n\nDONE: bar\n\n");
+    try checkTaskList(
+        &.{
+            .{ .name = "foo" },
+            .{ .name = "bar", .done = true },
+        },
+        "\n\nTODO: foo\n\nDONE: bar\n\n",
+    );
 }
 
 test "tasklist from single task with description" {
-    try checkTaskList(&.{
-        .{ .name = "foo", .description = "bar", .done = false },
-    }, "TODO: foo\nbar");
+    try checkTaskList(
+        &.{
+            .{ .name = "foo", .description = "bar" },
+        },
+        "TODO: foo\nbar",
+    );
 }
 
 test "tasklist from multiple tasks with description" {
-    try checkTaskList(&.{
-        .{ .name = "foo", .description = "bar", .done = false },
-        .{ .name = "bar", .description = "baz", .done = true },
-    }, "TODO: foo\nbar\nDONE: bar\nbaz");
+    try checkTaskList(
+        &.{
+            .{ .name = "foo", .description = "bar" },
+            .{ .name = "bar", .description = "baz", .done = true },
+        },
+        "TODO: foo\nbar\nDONE: bar\nbaz",
+    );
 }
 
 test "simple task" {
