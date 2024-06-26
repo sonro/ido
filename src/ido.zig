@@ -11,3 +11,7 @@ pub const FileStore = store.FileStore;
 
 pub const TODO_PATTERN = "TODO:";
 pub const DONE_PATTERN = "DONE:";
+
+pub const Error = error{
+    NoTaskName,
+};

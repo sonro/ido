@@ -4,6 +4,7 @@ const allocator = testing.allocator;
 const ido = @import("ido");
 const util = @import("test-util");
 const Task = ido.Task;
+const Error = ido.Error;
 const checkTaskNotDone = util.checkTaskNotDone;
 const checkTaskDone = util.checkTaskDone;
 
@@ -24,7 +25,7 @@ test "create new simple task" {
 
 test "create new simple task with empty name" {
     const res = Task.newSimple("");
-    try testing.expectError(ido.task.Error.NoTaskName, res);
+    try testing.expectError(Error.NoTaskName, res);
 }
 
 test "create new task with description" {
@@ -34,7 +35,7 @@ test "create new task with description" {
 
 test "create new task with empty name" {
     const res = Task.new("", "b");
-    try testing.expectError(ido.task.Error.NoTaskName, res);
+    try testing.expectError(Error.NoTaskName, res);
 }
 
 test "create new task with empty description" {
@@ -44,7 +45,7 @@ test "create new task with empty description" {
 
 test "create new task with empty name and description" {
     const res = Task.new("", "");
-    try testing.expectError(ido.task.Error.NoTaskName, res);
+    try testing.expectError(Error.NoTaskName, res);
 }
 
 test "mark task as done" {

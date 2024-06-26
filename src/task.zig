@@ -1,9 +1,6 @@
 const std = @import("std");
 const ido = @import("ido.zig");
-
-pub const Error = error{
-    NoTaskName,
-};
+const Error = ido.Error;
 
 pub const Task = struct {
     name: []const u8,
