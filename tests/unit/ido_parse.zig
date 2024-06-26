@@ -2,9 +2,12 @@ const std = @import("std");
 const testing = std.testing;
 const allocator = testing.allocator;
 const ido = @import("ido");
+const fixtures = @import("fixtures");
+const util = @import("test-util");
 const Format = ido.Format;
 const Task = ido.Task;
-const util = @import("test-util");
+const expected_mixed = fixtures.simple.tasks;
+const mixed_ido_content = fixtures.simple.ido_content;
 const checkTaskNotDone = util.checkTaskNotDone;
 const checkTaskDone = util.checkTaskDone;
 
@@ -57,6 +60,13 @@ test "tasklist from multiple tasks with description" {
             .{ .name = "bar", .description = "baz", .done = true },
         },
         "TODO: foo\nbar\nDONE: bar\nbaz",
+    );
+}
+
+test "long mixed tasklist" {
+    try checkTaskList(
+        &expected_mixed,
+        mixed_ido_content,
     );
 }
 

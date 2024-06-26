@@ -1,4 +1,5 @@
 const Task = @import("ido").Task;
+pub const ido_content = @embedFile("simple.ido");
 pub const tasks = [_]Task{
     .{
         .name = "just a name",

@@ -29,6 +29,13 @@ pub fn build(b: *std.Build) void {
     });
     test_util_module.addImport("ido", lib_module);
 
+    const fixtures_module = b.addModule("fixtures", .{
+        .root_source_file = b.path("tests/fixtures/fixtures.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    fixtures_module.addImport("ido", lib_module);
+
     const build_env = BuildEnv{
         .b = b,
         .target = target,
@@ -36,6 +43,7 @@ pub fn build(b: *std.Build) void {
         .modules = &.{
             .{ .name = "ido", .module = lib_module },
             .{ .name = "test-util", .module = test_util_module },
+            .{ .name = "fixtures", .module = fixtures_module },
         },
     };
 

@@ -4,9 +4,9 @@ const ido = @import("ido");
 const util = @import("test-util");
 const allocator = testing.allocator;
 
-const expected_simple = @import("fixtures/simple.zig").tasks;
+const expected_simple = @import("fixtures").simple.tasks;
 
-const SIMPLE_IDO_FILE_PATH = "tests/integration/fixtures/simple.ido";
+const SIMPLE_IDO_FILE_PATH = "tests/fixtures/simple.ido";
 
 test "load simple ido file" {
     var store = ido.FileStore(ido.Format).init(allocator, SIMPLE_IDO_FILE_PATH);
