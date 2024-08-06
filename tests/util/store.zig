@@ -12,7 +12,7 @@ pub const TestStore = struct {
     }
 
     pub fn taskStore(self: *TestStore) ido.TaskStore {
-        return ido.TaskStore.init(self);
+        return ido.TaskStore.interface(self);
     }
 
     pub fn save(self: *TestStore, tasks: []const ido.Task) !void {

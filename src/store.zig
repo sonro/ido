@@ -32,10 +32,10 @@ pub const TaskStore = struct {
     ///
     /// ```zig
     /// pub fn taskStore(self: *MyStore) ido.TaskStore {
-    ///     return ido.TaskStore.init(self);
+    ///     return ido.TaskStore.interface(self);
     /// }
     /// ```
-    pub fn init(ptr: anytype) TaskStore {
+    pub fn interface(ptr: anytype) TaskStore {
         const impl = Implentation(@TypeOf(ptr));
 
         return .{
@@ -98,7 +98,7 @@ pub fn FileStore(Format: type) type {
         }
 
         pub fn taskStore(self: *Self) TaskStore {
-            return TaskStore.init(self);
+            return TaskStore.interface(self);
         }
 
         pub fn save(self: *Self, tasks: []const Task) !void {
