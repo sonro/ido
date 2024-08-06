@@ -3,7 +3,6 @@ const ido = @import("ido.zig");
 const Task = ido.Task;
 
 pub const Manager = struct {
-    allocator: std.mem.Allocator,
     store: ido.TaskStore,
     tasks: std.ArrayList(ido.Task),
     persist_all_changes: bool = true,
@@ -12,7 +11,6 @@ pub const Manager = struct {
         var task_store = store;
         const tasks = try task_store.load(allocator);
         return Manager{
-            .allocator = allocator,
             .store = task_store,
             .tasks = tasks,
         };
