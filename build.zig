@@ -49,6 +49,7 @@ pub fn build(b: *std.Build) void {
 
     buildExe(build_env);
     buildTests(build_env);
+    buildCheck(build_env);
 }
 
 const TestType = struct {
@@ -125,4 +126,16 @@ fn buildExe(env: BuildEnv) void {
 
     const run_step = env.b.step("run", "Run the app");
     run_step.dependOn(&run_cmd.step);
+}
+
+fn buildCheck(env: BuildEnv) void {
+    const exe_check = env.b.addExecutable(.{
+        .name = "check",
+        .root_source_file = env.b.path("src/main.zig"),
+        .target = env.target,
+        .optimize = env.optimize,
+    });
+    exe_check.root_module.addImport(env.modules[0].name, env.modules[0].module);
+    const check_step = env.b.step("check", "Check if main compiles");
+    check_step.dependOn(&exe_check.step);
 }
