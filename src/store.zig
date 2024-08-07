@@ -85,6 +85,7 @@ pub fn FileStore(Format: type) type {
 
         const Self = @This();
 
+        /// Allocator used to store file contents
         pub fn init(allocator: std.mem.Allocator, path: []const u8) Self {
             return .{
                 .allocator = allocator,
@@ -109,6 +110,7 @@ pub fn FileStore(Format: type) type {
             try bw.flush();
         }
 
+        /// Allocator used to store `TaskList`
         pub fn load(self: *Self, allocator: std.mem.Allocator) !std.ArrayList(Task) {
             var tasklist = std.ArrayList(Task).init(allocator);
             try self.loadInto(&tasklist);
