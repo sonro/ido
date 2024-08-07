@@ -55,26 +55,26 @@ fn testSave(manager: *Manager, expected: []const Task) !void {
     try util.expectTaskSliceEqual(expected, actual.items);
 }
 
-test "reload empty tasks" {
-    try checkReload(EMPTY_TASKS);
+test "load empty tasks" {
+    try checkLoad(EMPTY_TASKS);
 }
 
-test "reload multiple tasks" {
-    try checkReload(FOUR_MIXED);
+test "load multiple tasks" {
+    try checkLoad(FOUR_MIXED);
 }
 
-fn checkReload(tasks: []const Task) !void {
+fn checkLoad(tasks: []const Task) !void {
     const ops = CheckOpts{ .manual_saves = 1 };
-    try checkTestFn(ops, testReload, .{tasks});
+    try checkTestFn(ops, testLoad, .{tasks});
 }
 
-fn testReload(manager: *Manager, expected: []const Task) !void {
+fn testLoad(manager: *Manager, expected: []const Task) !void {
     // modify manager's tasklist
     try manager.tasks.append(.{ .name = "testLoadTask" });
     // ensure the manager's store has what we expect
     try manager.store.save(expected);
 
-    try manager.reload();
+    try manager.load();
     try util.expectTaskSliceEqual(expected, manager.allTasks());
 }
 
@@ -387,6 +387,7 @@ fn ManagerTester(test_fn: anytype) type {
             var store = util.TestStore.init(self.tasks);
             var manager = try Manager.init(allocator, store.taskStore());
             defer manager.deinit();
+            try manager.load();
             try @call(.auto, test_fn, .{&manager} ++ args);
             try testing.expectEqual(self.auto_saves, store.saved);
         }
@@ -394,6 +395,7 @@ fn ManagerTester(test_fn: anytype) type {
         pub fn callManual(self: *Self, args: anytype) !void {
             var store = util.TestStore.init(self.tasks);
             var manager = try Manager.initManualSave(allocator, store.taskStore());
+            try manager.load();
             defer manager.deinit();
             try @call(.auto, test_fn, .{&manager} ++ args);
             try testing.expectEqual(self.manual_saves, store.saved);

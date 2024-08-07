@@ -8,10 +8,9 @@ pub const Manager = struct {
     persist_all_changes: bool = true,
 
     pub fn init(allocator: std.mem.Allocator, store: ido.TaskStore) !Manager {
-        var task_store = store;
-        const tasks = try task_store.load(allocator);
+        const tasks = std.ArrayList(ido.Task).init(allocator);
         return Manager{
-            .store = task_store,
+            .store = store,
             .tasks = tasks,
         };
     }
@@ -30,7 +29,7 @@ pub const Manager = struct {
         try self.store.save(self.tasks.items);
     }
 
-    pub fn reload(self: *Manager) !void {
+    pub fn load(self: *Manager) !void {
         self.tasks.clearRetainingCapacity();
         try self.store.loadInto(&self.tasks);
     }
