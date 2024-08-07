@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.0] - 2024-08-07
+
 ### Added
 
 #### Library
@@ -22,3 +24,6 @@ in different formats.
 #### CLI
 
 `ido` cli app for displaying an `ido.Format` file on the command line.
+
+[Unreleased]: https://github.com/sonro/ido/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/sonro/ido/releases/tag/v0.1.0
