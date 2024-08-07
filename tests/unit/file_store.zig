@@ -26,6 +26,7 @@ fn checkInit(contents: []const u8) !void {
     try tester.call(.{});
 }
 
+// no-op
 fn testInit(_: *Store) !void {}
 
 test "load empty file" {
