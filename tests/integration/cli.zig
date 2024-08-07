@@ -29,3 +29,29 @@ test "empty file" {
     try testing.expectEqual(@as(usize, 0), res.stdout.len);
     try testing.expectEqual(@as(usize, 0), res.stderr.len);
 }
+
+test "invalid file" {
+    var runner = ExeRunner.init();
+    defer runner.deinit();
+
+    try runner.addFile("test.ido", "invalid ido file");
+    var res = try runner.run(testing.allocator, run_on_test_ido);
+    defer res.deinit(testing.allocator);
+
+    try testing.expectEqual(ExeRunner.Result.Status.success, res.status);
+    try testing.expectEqual(@as(usize, 0), res.stdout.len);
+    try testing.expectEqual(@as(usize, 0), res.stderr.len);
+}
+
+test "one task" {
+    var runner = ExeRunner.init();
+    defer runner.deinit();
+
+    try runner.addFile("test.ido", "TODO: do something");
+    var res = try runner.run(testing.allocator, run_on_test_ido);
+    defer res.deinit(testing.allocator);
+
+    try testing.expectEqual(ExeRunner.Result.Status.success, res.status);
+    try testing.expectEqualStrings("TODO: do something\n\n", res.stdout);
+    try testing.expectEqual(@as(usize, 0), res.stderr.len);
+}
