@@ -4,8 +4,8 @@ const ido = @import("ido");
 const util = @import("test-util");
 const allocator = testing.allocator;
 
-const expected_simple = @import("fixtures").simple.tasks;
-
+const fixtures = @import("fixtures");
+const expected_simple = fixtures.simple;
 const SIMPLE_IDO_FILE_PATH = "tests/fixtures/simple.ido";
 
 test "load simple ido file" {
@@ -14,5 +14,6 @@ test "load simple ido file" {
     const manager = try ido.Manager.init(allocator, store.taskStore());
     defer manager.deinit();
 
-    try util.expectTaskSliceEqual(&expected_simple, manager.allTasks());
+    try util.expectTaskSliceEqual(&expected_simple.tasks, manager.allTasks());
+    try testing.expectEqualStrings(expected_simple.ido_content, store.contents);
 }
