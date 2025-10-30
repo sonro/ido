@@ -81,19 +81,19 @@ fn argCount(args: anytype) usize {
     const ArgType = @TypeOf(args);
     const arg_info = @typeInfo(ArgType);
 
-    if (arg_info != .Struct) {
+    if (arg_info != .@"struct") {
         @compileError("Expected struct type, found " ++ @typeName(ArgType));
     }
 
-    if (!arg_info.Struct.is_tuple) {
+    if (!arg_info.@"struct".is_tuple) {
         @compileError("Expected tuple type, found " ++ @typeName(ArgType));
     }
 
-    if (arg_info.Struct.fields.len == 0) {
+    if (arg_info.@"struct".fields.len == 0) {
         @compileError("Expected at least one argument");
     }
 
-    return arg_info.Struct.fields.len;
+    return arg_info.@"struct".fields.len;
 }
 
 test "init" {
@@ -119,11 +119,7 @@ test "add file" {
     defer runner.deinit();
     try runner.addFile("test.txt", fixtures.hello_txt);
 
-    const file = try runner.tmp_dir.dir.openFile("test.txt", .{});
-    defer file.close();
-
-    const stat = try file.stat();
-    const content = try file.readToEndAlloc(testing.allocator, stat.size);
+    const content = try runner.tmp_dir.dir.readFileAlloc("test.txt", testing.allocator, .unlimited);
     defer testing.allocator.free(content);
 
     try testing.expectEqualStrings(fixtures.hello_txt, content);

@@ -1,18 +1,19 @@
 //! CSV format for tests
 const std = @import("std");
 const ido = @import("ido");
+const Writer = std.Io.Writer;
 const Task = ido.Task;
 
 pub const TODO_PATTERN = "";
 pub const DONE_PATTERN = "done";
 
-pub fn serializeTaskList(tasks: []const Task, writer: anytype) !void {
+pub fn serializeTaskList(tasks: []const Task, writer: *Writer) !void {
     for (tasks) |task| {
         try serializeTask(task, writer);
     }
 }
 
-pub fn serializeTask(task: Task, writer: anytype) !void {
+pub fn serializeTask(task: Task, writer: *Writer) !void {
     try writer.print("{s},{s},{s}\n", .{
         task.name,
         if (task.description) |desc| desc else "",
@@ -21,6 +22,7 @@ pub fn serializeTask(task: Task, writer: anytype) !void {
 }
 
 pub fn parseTaskList(
+    allocator: std.mem.Allocator,
     tasklist: *std.ArrayList(Task),
     input: []const u8,
 ) !void {
@@ -28,7 +30,7 @@ pub fn parseTaskList(
     var lines = std.mem.tokenizeScalar(u8, input, '\n');
     while (lines.next()) |line| {
         if (line.len == 0) continue;
-        try tasklist.append(try parseTask(line));
+        try tasklist.append(allocator, try parseTask(line));
     }
 }
 

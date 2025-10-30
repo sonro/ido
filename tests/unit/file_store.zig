@@ -30,6 +30,7 @@ fn checkInit(contents: []const u8) !void {
 fn testInit(_: *Store) !void {}
 
 test "load empty file" {
+    // @breakpoint();
     try checkLoad(EMPTY_TASKS);
 }
 
@@ -52,8 +53,8 @@ fn checkLoad(tasks: []const Task) !void {
 }
 
 fn testLoad(store: *Store, expected: []const Task) !void {
-    const actual = try store.load(allocator);
-    defer actual.deinit();
+    var actual = try store.load(allocator);
+    defer actual.deinit(allocator);
     try util.expectTaskSliceEqual(expected, actual.items);
 }
 
@@ -74,9 +75,9 @@ fn checkLoadInto(tasks: []const Task) !void {
 }
 
 fn testLoadInto(store: *Store, expected: []const Task) !void {
-    var tasklist = std.ArrayList(Task).init(allocator);
-    defer tasklist.deinit();
-    try store.loadInto(&tasklist);
+    var tasklist = std.ArrayList(Task).empty;
+    defer tasklist.deinit(allocator);
+    try store.loadInto(allocator, &tasklist);
     try util.expectTaskSliceEqual(expected, tasklist.items);
 }
 
@@ -129,8 +130,8 @@ fn checkSaveThenLoad(stored: []const Task, save: []const Task) !void {
 
 fn testSaveThenLoad(store: *Store, tasks: []const Task) !void {
     try store.save(tasks);
-    const actual = try store.load(allocator);
-    defer actual.deinit();
+    var actual = try store.load(allocator);
+    defer actual.deinit(allocator);
     try util.expectTaskSliceEqual(tasks, actual.items);
 }
 
@@ -141,8 +142,8 @@ test "interface save then load" {
 fn testInterfaceSaveThenLoad(store: *Store, tasks: []const Task) !void {
     const taskStore = store.taskStore();
     try taskStore.save(tasks);
-    const actual = try taskStore.load(allocator);
-    defer actual.deinit();
+    var actual = try taskStore.load(allocator);
+    defer actual.deinit(allocator);
     try util.expectTaskSliceEqual(tasks, actual.items);
 }
 
@@ -154,10 +155,10 @@ fn testInterfaceSaveThenLoadInto(store: *Store, tasks: []const Task) !void {
     const taskStore = store.taskStore();
     try taskStore.save(tasks);
 
-    var tasklist = std.ArrayList(Task).init(allocator);
-    defer tasklist.deinit();
+    var tasklist = try std.ArrayList(Task).initCapacity(allocator, tasks.len);
+    defer tasklist.deinit(allocator);
 
-    try taskStore.loadInto(&tasklist);
+    try taskStore.loadInto(allocator, &tasklist);
     try util.expectTaskSliceEqual(tasks, tasklist.items);
 }
 
@@ -166,10 +167,11 @@ fn testInvalidFormatError(store: *Store) !void {
 }
 
 fn generateContents(tasks: []const Task) ![]const u8 {
-    var buf = std.ArrayList(u8).init(allocator);
-    errdefer buf.deinit();
-    try TestFormat.serializeTaskList(tasks, buf.writer());
-    return buf.toOwnedSlice();
+    var contents = std.Io.Writer.Allocating.init(allocator);
+    errdefer contents.deinit();
+    try TestFormat.serializeTaskList(tasks, &contents.writer);
+    try contents.writer.flush();
+    return contents.toOwnedSlice();
 }
 
 fn checkTestFn(test_fn: anytype, stored: []const Task, tasks: []const Task) !void {
@@ -196,9 +198,9 @@ fn FileStoreTester(test_fn: anytype) type {
             try callFile(args, file.path);
 
             const actual = try std.fs.cwd().readFileAlloc(
-                allocator,
                 file.path,
-                std.math.maxInt(usize),
+                allocator,
+                .unlimited,
             );
             defer allocator.free(actual);
             try testing.expectEqualStrings(expected, actual);

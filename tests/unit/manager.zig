@@ -48,10 +48,10 @@ fn checkSave(opts: CheckOpts) !void {
 
 fn testSave(manager: *Manager, expected: []const Task) !void {
     manager.tasks.clearRetainingCapacity();
-    try manager.tasks.appendSlice(expected);
+    try manager.tasks.appendSlice(allocator, expected);
     try manager.save();
-    const actual = try manager.store.load(allocator);
-    defer actual.deinit();
+    var actual = try manager.store.load(allocator);
+    defer actual.deinit(allocator);
     try util.expectTaskSliceEqual(expected, actual.items);
 }
 
@@ -70,7 +70,7 @@ fn checkLoad(tasks: []const Task) !void {
 
 fn testLoad(manager: *Manager, expected: []const Task) !void {
     // modify manager's tasklist
-    try manager.tasks.append(.{ .name = "testLoadTask" });
+    try manager.tasks.append(allocator, .{ .name = "testLoadTask" });
     // ensure the manager's store has what we expect
     try manager.store.save(expected);
 

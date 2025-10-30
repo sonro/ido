@@ -1,7 +1,8 @@
 .{
-    .name = "ido",
+    .name = .ido,
+    .fingerprint = 0x64dbfbd70b8179ca,
     .version = "0.1.0",
-    .minimum_zig_version = "0.13.0",
+    .minimum_zig_version = "0.15.1",
     .dependencies = .{},
     .paths = .{
         "build.zig",

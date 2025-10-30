@@ -56,8 +56,8 @@ fn checkTask(comptime task: Task) !void {
 }
 
 fn checkList(comptime tasks: []const ido.Task) !void {
-    const expected = try expectedListString(tasks);
-    defer expected.deinit();
+    var expected = try expectedListString(tasks);
+    defer expected.deinit(allocator);
     try testSerializeTaskList(expected.items, tasks);
 }
 
@@ -74,9 +74,9 @@ fn expectedTaskString(comptime task: ido.Task) []const u8 {
 }
 
 fn expectedListString(comptime tasks: []const Task) !std.ArrayList(u8) {
-    var string = std.ArrayList(u8).init(allocator);
+    var string = std.ArrayList(u8).empty;
     inline for (tasks) |task| {
-        try string.appendSlice(expectedTaskString(task));
+        try string.appendSlice(allocator, expectedTaskString(task));
     }
     return string;
 }
@@ -90,10 +90,12 @@ fn testSerializeTaskList(expected: []const u8, tasks: []const Task) !void {
 }
 
 fn testSerializeFn(expected: []const u8, testFn: anytype, taskArg: anytype) !void {
-    var actual = try std.ArrayList(u8).initCapacity(allocator, expected.len);
-    defer actual.deinit();
-    try testFn(taskArg, actual.writer());
-    try testing.expectEqualStrings(expected, actual.items);
+    var writer = try std.Io.Writer.Allocating.initCapacity(allocator, expected.len);
+    errdefer writer.deinit();
+    try testFn(taskArg, &writer.writer);
+    const slice = try writer.toOwnedSlice();
+    defer allocator.free(slice);
+    try testing.expectEqualStrings(expected, slice);
 }
 
 fn expectedTodoSimple(comptime name: []const u8) []const u8 {

@@ -58,7 +58,7 @@ const TestType = struct {
     description: []const u8,
 };
 
-const TEST_TYPES = [_]TestType{
+const test_types = [_]TestType{
     .{
         .name = "test-lib",
         .path = "tests/unit/tests.zig",
@@ -83,15 +83,18 @@ fn buildTests(env: BuildEnv) void {
         "Skip tests that do not match any filter",
     ) orelse &[0][]const u8{};
 
-    var test_runs: [TEST_TYPES.len]*std.Build.Step.Run = undefined;
+    var test_runs: [test_types.len]*std.Build.Step.Run = undefined;
 
-    for (TEST_TYPES, 0..) |test_type, i| {
+    for (test_types, 0..) |test_type, i| {
         const t = env.b.addTest(.{
             .name = test_type.name,
-            .root_source_file = env.b.path(test_type.path),
-            .target = env.target,
-            .optimize = env.optimize,
+            .root_module = env.b.createModule(.{
+                .root_source_file = env.b.path(test_type.path),
+                .target = env.target,
+                .optimize = env.optimize,
+            }),
             .filters = test_filters,
+            .use_llvm = true,
         });
         env.b.installArtifact(t);
         for (env.modules) |module| {
@@ -112,9 +115,11 @@ fn buildTests(env: BuildEnv) void {
 fn buildExe(env: BuildEnv) void {
     const exe = env.b.addExecutable(.{
         .name = "ido",
-        .root_source_file = env.b.path("src/main.zig"),
-        .target = env.target,
-        .optimize = env.optimize,
+        .root_module = env.b.createModule(.{
+            .root_source_file = env.b.path("src/main.zig"),
+            .target = env.target,
+            .optimize = env.optimize,
+        }),
     });
     exe.root_module.addImport(env.modules[0].name, env.modules[0].module);
     env.b.installArtifact(exe);
@@ -131,9 +136,11 @@ fn buildExe(env: BuildEnv) void {
 fn buildCheck(env: BuildEnv) void {
     const exe_check = env.b.addExecutable(.{
         .name = "check",
-        .root_source_file = env.b.path("src/main.zig"),
-        .target = env.target,
-        .optimize = env.optimize,
+        .root_module = env.b.createModule(.{
+            .root_source_file = env.b.path("src/main.zig"),
+            .target = env.target,
+            .optimize = env.optimize,
+        }),
     });
     exe_check.root_module.addImport(env.modules[0].name, env.modules[0].module);
     const check_step = env.b.step("check", "Check if main compiles");

@@ -20,7 +20,7 @@ test "TestStore empty store save empty" {
 }
 
 test "TestStore empty store save single task" {
-    const task = .{ .name = "foo", .description = null, .done = false };
+    const task: Task = .{ .name = "foo", .description = null, .done = false };
     var test_store = TestStore.init(&.{});
 
     try test_store.save(&.{task});
@@ -29,8 +29,8 @@ test "TestStore empty store save single task" {
 }
 
 test "TestStore empty store save multiple tasks" {
-    const task1 = .{ .name = "foo", .description = null, .done = false };
-    const task2 = .{ .name = "bar", .description = null, .done = true };
+    const task1: Task = .{ .name = "foo", .description = null, .done = false };
+    const task2: Task = .{ .name = "bar", .description = null, .done = true };
     var test_store = TestStore.init(&.{});
     var store = test_store.taskStore();
 
@@ -43,15 +43,15 @@ test "TestStore empty store load empty" {
     var test_store = TestStore.init(&.{});
     var store = test_store.taskStore();
 
-    const tasklist = try store.load(testing.allocator);
-    defer tasklist.deinit();
+    var tasklist = try store.load(testing.allocator);
+    defer tasklist.deinit(allocator);
 
     try util.expectTaskSliceEqual(test_store.tasks, tasklist.items);
 }
 
 test "TestStore save overwrite single task" {
-    const task = .{ .name = "foo", .description = null, .done = false };
-    const new_task = .{ .name = "bar", .description = null, .done = true };
+    const task: Task = .{ .name = "foo", .description = null, .done = false };
+    const new_task: Task = .{ .name = "bar", .description = null, .done = true };
     var test_store = TestStore.init(&.{task});
     var store = test_store.taskStore();
 
@@ -61,63 +61,63 @@ test "TestStore save overwrite single task" {
 }
 
 test "TestStore load single task" {
-    const task = .{ .name = "foo", .description = null, .done = false };
+    const task: Task = .{ .name = "foo", .description = null, .done = false };
     var test_store = TestStore.init(&.{});
     var store = test_store.taskStore();
 
     try store.save(&.{task});
-    const tasklist = try store.load(testing.allocator);
-    defer tasklist.deinit();
+    var tasklist = try store.load(testing.allocator);
+    defer tasklist.deinit(allocator);
 
     try util.expectTaskSliceEqual(&.{task}, tasklist.items);
 }
 
 test "TestStore load multiple tasks" {
-    const task1 = .{ .name = "foo", .description = null, .done = false };
-    const task2 = .{ .name = "bar", .description = null, .done = true };
+    const task1: Task = .{ .name = "foo", .description = null, .done = false };
+    const task2: Task = .{ .name = "bar", .description = null, .done = true };
     var test_store = TestStore.init(&.{});
     var store = test_store.taskStore();
 
     try store.save(&.{ task1, task2 });
-    const tasklist = try store.load(testing.allocator);
-    defer tasklist.deinit();
+    var tasklist = try store.load(testing.allocator);
+    defer tasklist.deinit(allocator);
 
     try util.expectTaskSliceEqual(&.{ task1, task2 }, tasklist.items);
 }
 
 test "TestStore empty store save then load" {
-    const task = .{ .name = "foo", .description = null, .done = false };
+    const task: Task = .{ .name = "foo", .description = null, .done = false };
     var test_store = TestStore.init(&.{});
     var store = test_store.taskStore();
 
     try store.save(&.{task});
-    const tasklist = try store.load(testing.allocator);
-    defer tasklist.deinit();
+    var tasklist = try store.load(testing.allocator);
+    defer tasklist.deinit(allocator);
 
     try util.expectTaskSliceEqual(&.{task}, tasklist.items);
 }
 
 test "TestStore empty store save then load multiple" {
-    const task1 = .{ .name = "foo", .description = null, .done = false };
-    const task2 = .{ .name = "bar", .description = null, .done = true };
+    const task1: Task = .{ .name = "foo", .description = null, .done = false };
+    const task2: Task = .{ .name = "bar", .description = null, .done = true };
     var test_store = TestStore.init(&.{});
     var store = test_store.taskStore();
 
     try store.save(&.{ task1, task2 });
-    const tasklist = try store.load(testing.allocator);
-    defer tasklist.deinit();
+    var tasklist = try store.load(testing.allocator);
+    defer tasklist.deinit(allocator);
 
     try util.expectTaskSliceEqual(&.{ task1, task2 }, tasklist.items);
 }
 
 test "TestStore load then save" {
-    const task1 = .{ .name = "foo", .description = null, .done = false };
-    const task2 = .{ .name = "bar", .description = null, .done = true };
+    const task1: Task = .{ .name = "foo", .description = null, .done = false };
+    const task2: Task = .{ .name = "bar", .description = null, .done = true };
     var test_store = TestStore.init(&.{task1});
 
     var tasklist = try test_store.load(testing.allocator);
-    defer tasklist.deinit();
-    try tasklist.append(task2);
+    defer tasklist.deinit(allocator);
+    try tasklist.append(allocator, task2);
     try test_store.save(tasklist.items);
 
     try util.expectTaskSliceEqual(&.{ task1, task2 }, test_store.tasks);
@@ -161,13 +161,13 @@ const LoadIntoConfig = struct {
 fn testLoadInto(args: LoadIntoConfig) !void {
     var tasklist = try std.ArrayList(Task).initCapacity(allocator, args.listed.len);
     if (args.listed.len > 0) {
-        try tasklist.appendSlice(args.listed);
+        try tasklist.appendSlice(allocator, args.listed);
     }
-    defer tasklist.deinit();
+    defer tasklist.deinit(allocator);
 
     var test_store = TestStore.init(args.stored);
     const store = test_store.taskStore();
-    try store.loadInto(&tasklist);
+    try store.loadInto(allocator, &tasklist);
 
     try util.expectTaskSliceEqual(args.expected, tasklist.items);
 }

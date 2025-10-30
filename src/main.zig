@@ -4,7 +4,7 @@ const ido = @import("ido");
 const usage = "Usage: zig ido -f <file.ido>";
 
 pub fn main() !void {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    var gpa = std.heap.DebugAllocator(.{}).init;
     defer _ = gpa.deinit();
     var arena = std.heap.ArenaAllocator.init(gpa.allocator());
     defer arena.deinit();
@@ -16,9 +16,10 @@ pub fn main() !void {
 
     try manager.load();
 
-    var stdout = std.io.bufferedWriter(std.io.getStdOut().writer());
-    try ido.Format.serializeTaskList(manager.allTasks(), stdout.writer());
-    try stdout.flush();
+    var stdout_buf: [1024]u8 = undefined;
+    var stdout_writer = std.fs.File.stdout().writer(&stdout_buf);
+    try ido.Format.serializeTaskList(manager.allTasks(), &stdout_writer.interface);
+    try stdout_writer.interface.flush();
 }
 
 const Args = struct {

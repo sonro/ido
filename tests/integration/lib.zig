@@ -48,11 +48,11 @@ test "save simple ido file" {
 
     // create expected string
     var expected: [bufsize]u8 = undefined;
-    var fbs = std.io.fixedBufferStream(&expected);
-    try ido.Format.serializeTaskList(&expected_simple.tasks, fbs.writer());
+    var writer = std.Io.Writer.fixed(&expected);
+    try ido.Format.serializeTaskList(&expected_simple.tasks, &writer);
 
     // read actual file
-    const actual = try std.fs.cwd().readFileAlloc(allocator, tmp_path, bufsize);
+    const actual = try std.fs.cwd().readFileAlloc(tmp_path, allocator, .limited(bufsize));
     defer allocator.free(actual);
 
     try testing.expectEqualStrings(expected[0..actual.len], actual);

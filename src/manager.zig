@@ -4,14 +4,14 @@ const Task = ido.Task;
 
 pub const Manager = struct {
     store: ido.TaskStore,
-    tasks: std.ArrayList(ido.Task),
+    tasks: std.ArrayList(ido.Task) = .empty,
+    allocator: std.mem.Allocator,
     persist_all_changes: bool = true,
 
     pub fn init(allocator: std.mem.Allocator, store: ido.TaskStore) !Manager {
-        const tasks = std.ArrayList(ido.Task).init(allocator);
         return Manager{
             .store = store,
-            .tasks = tasks,
+            .allocator = allocator,
         };
     }
 
@@ -21,8 +21,8 @@ pub const Manager = struct {
         return manager;
     }
 
-    pub fn deinit(self: *const Manager) void {
-        self.tasks.deinit();
+    pub fn deinit(self: *Manager) void {
+        self.tasks.deinit(self.allocator);
     }
 
     pub fn save(self: *Manager) !void {
@@ -31,7 +31,7 @@ pub const Manager = struct {
 
     pub fn load(self: *Manager) !void {
         self.tasks.clearRetainingCapacity();
-        try self.store.loadInto(&self.tasks);
+        try self.store.loadInto(self.allocator, &self.tasks);
     }
 
     pub fn allTasks(self: *const Manager) []const Task {
@@ -44,7 +44,7 @@ pub const Manager = struct {
     }
 
     pub fn addTask(self: *Manager, task: Task) !usize {
-        try self.tasks.append(task);
+        try self.tasks.append(self.allocator, task);
         if (self.persist_all_changes) try self.save();
         return self.tasks.items.len - 1;
     }

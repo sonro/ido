@@ -24,12 +24,12 @@ pub const TestStore = struct {
         self: *const TestStore,
         allocator: std.mem.Allocator,
     ) !std.ArrayList(ido.Task) {
-        var tasklist = std.ArrayList(ido.Task).init(allocator);
-        try tasklist.appendSlice(self.tasks);
+        var tasklist = try std.ArrayList(ido.Task).initCapacity(allocator, self.tasks.len);
+        tasklist.appendSliceAssumeCapacity(self.tasks);
         return tasklist;
     }
 
-    pub fn loadInto(self: *const TestStore, tasklist: *std.ArrayList(ido.Task)) !void {
-        try tasklist.appendSlice(self.tasks);
+    pub fn loadInto(self: *const TestStore, allocator: std.mem.Allocator, tasklist: *std.ArrayList(ido.Task)) !void {
+        try tasklist.appendSlice(allocator, self.tasks);
     }
 };

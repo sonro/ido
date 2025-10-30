@@ -177,7 +177,7 @@ test "no task error" {
 
 fn checkTaskList(comptime expected: []const Task, comptime input: []const u8) !void {
     var tasklist = try std.ArrayList(Task).initCapacity(allocator, expected.len);
-    try Format.parseTaskList(&tasklist, input);
-    defer tasklist.deinit();
+    try Format.parseTaskList(allocator, &tasklist, input);
+    defer tasklist.deinit(allocator);
     try util.expectTaskSliceEqual(expected, tasklist.items);
 }

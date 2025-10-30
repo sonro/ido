@@ -15,7 +15,7 @@ pub const Task = struct {
         return rawNew(name, null, false);
     }
 
-    pub fn format(self: Task, _: []const u8, _: std.fmt.FormatOptions, writer: anytype) !void {
+    pub fn format(self: Task, writer: *std.Io.Writer) !void {
         try writer.print(
             \\Task.{{
             \\    .name = "{s}",

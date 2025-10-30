@@ -13,13 +13,13 @@ const Task = ido.Task;
 const TODO_PATTERN = ido.TODO_PATTERN;
 const DONE_PATTERN = ido.DONE_PATTERN;
 
-pub fn serializeTaskList(tasks: []const Task, writer: anytype) !void {
+pub fn serializeTaskList(tasks: []const Task, writer: *std.Io.Writer) !void {
     for (tasks) |task| {
         try serializeTask(task, writer);
     }
 }
 
-pub fn serializeTask(task: Task, writer: anytype) !void {
+pub fn serializeTask(task: Task, writer: *std.Io.Writer) !void {
     try writer.print("{s} {s}\n", .{
         if (task.done) DONE_PATTERN else TODO_PATTERN,
         task.name,
@@ -32,15 +32,16 @@ pub fn serializeTask(task: Task, writer: anytype) !void {
 }
 
 pub fn parseTaskList(
+    allocator: std.mem.Allocator,
     tasklist: *std.ArrayList(Task),
     input: []const u8,
 ) !void {
-    errdefer tasklist.deinit();
+    errdefer tasklist.deinit(allocator);
     var start: usize = 0;
     while (findNextTask(input[start..])) |index| {
         start += index;
         const task = try parseTask(input[start..]);
-        try tasklist.append(task);
+        try tasklist.append(allocator, task);
         start += task.name.len;
         if (task.description) |desc| {
             start += desc.len;
