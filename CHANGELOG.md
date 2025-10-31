@@ -7,7 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-- ### Changed
+### Added
+
+- `ido.TaskList` for an encapsulated interface for the core task list.
+
+### Changed
 
 - Fix `ExeRunner` tests
 

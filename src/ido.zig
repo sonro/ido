@@ -2,6 +2,7 @@ const manager = @import("manager.zig");
 const store = @import("store.zig");
 
 pub const Task = @import("Task.zig");
+pub const TaskList = @import("TaskList.zig");
 pub const Format = @import("Format.zig");
 pub const Manager = manager.Manager;
 pub const TaskStore = store.TaskStore;
