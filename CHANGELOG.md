@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- ### Changed
+
+- Fix `ExeRunner` tests
+
 ## [0.2.0] - 2025-10-30
 
 ### Changed

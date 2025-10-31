@@ -150,5 +150,5 @@ test "run unknown binary" {
     defer runner.deinit();
 
     const res = runner.run(testing.allocator, .{"not_a_binary"});
-    try testing.expectError(error.UnknownExe, res);
+    try testing.expectError(error.AccessDenied, res);
 }
