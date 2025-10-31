@@ -13,4 +13,5 @@ pub const DONE_PATTERN = "DONE:";
 
 pub const Error = error{
     NoTaskName,
+    OutOfBounds,
 };
