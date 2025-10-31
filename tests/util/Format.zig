@@ -52,7 +52,7 @@ pub fn parseTask(input: []const u8) !Task {
     }
 
     trimTaskData(&task);
-    try ido.task.validate(&task);
+    try task.validate();
 
     return task;
 }
